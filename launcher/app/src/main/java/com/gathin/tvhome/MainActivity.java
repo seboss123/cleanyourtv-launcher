@@ -151,7 +151,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView quoteText;
     private TextView quoteAuthor;
     private LinearLayout categoryChipContainer;
-    private DockCarouselView dockCarousel;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -527,18 +526,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (quoteAuthor != null) quoteAuthor.setText("— " + author);
         });
         setupCategoryChips();
-        dockCarousel = findViewById(R.id.dockCarousel);
-        dockCarousel.setDockApps(cfg.dockApps);
-        dockCarousel.setOnDockTileClickListener((pkg, cls) -> {
-            try {
-                android.content.Intent intent = new android.content.Intent();
-                intent.setClassName(pkg, cls);
-                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            } catch (Exception e) {
-                // Ignore launch failures
-            }
-        });
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -569,6 +556,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         clockBlock = findViewById(R.id.leftBlock);
         greetingColor = greeting.getCurrentTextColor();
         if (!cfg.showGreeting) greeting.setVisibility(View.GONE);
+        setupClockPosition();
         // Keep the other header layouts as designed: their extra lines change the block's centre.
         if (!cfg.showGreeting && !cfg.dateBelowClock && !cfg.shamsiDate && !cfg.lunarDate
                 && !cfg.topMenu && !getResources().getBoolean(R.bool.rtl_menu_bar)) {
@@ -2863,6 +2851,43 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private int dpToPx(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
+    }
+
+    /** Reposition the clock block based on config.xml clock_position; hide it if show_clock is false. */
+    private void setupClockPosition() {
+        String position = getResources().getString(R.string.clock_position);
+        boolean showClock = getResources().getBoolean(R.bool.show_clock);
+
+        if (!showClock) {
+            clockBlock.setVisibility(View.GONE);
+            return;
+        }
+
+        ViewGroup.LayoutParams params = clockBlock.getLayoutParams();
+
+        switch (position) {
+            case "top-right":
+                params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                clockBlock.setLayoutParams(params);
+                RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) clockBlock.getLayoutParams();
+                rlp.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE);
+                rlp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+                rlp.removeRule(RelativeLayout.LEFT_OF);
+                clockBlock.setLayoutParams(rlp);
+                break;
+            case "center-top":
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                clockBlock.setLayoutParams(params);
+                break;
+            case "bottom-left":
+            case "bottom-right":
+            case "center":
+                // Keep default top-left layout for unsupported positions in this pass
+                break;
+            default:
+                // top-left: default, keep as-is
+                break;
+        }
     }
 
     // ---- race-weekend panel (a theme's race_calendar) -----------------------------------------------
