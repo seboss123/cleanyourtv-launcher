@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF0A0A0A">
+
+    <!-- Header: title + back hint. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="56dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/drawerTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_drawer"
+            android:textColor="#FFFFFFFF"
+            android:textSize="34sp"
+            android:fontFamily="@string/font_light"
+            android:letterSpacing="-0.02" />
+
+        <TextView
+            android:id="@+id/drawerSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/app_drawer_hint"
+            android:textColor="#80FFFFFF"
+            android:textSize="14sp"
+            android:fontFamily="@string/font_medium"
+            android:letterSpacing="0.12"
+            android:textAllCaps="true" />
+    </LinearLayout>
+
+    <!-- App grid: all installed apps, alphabetical. -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/drawerGrid"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="120dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginEnd="56dp"
+        android:layout_marginBottom="80dp"
+        android:clipToPadding="false"
+        android:clipChildren="false"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:descendantFocusability="afterDescendants" />
+
+    <!-- Back hint at bottom. -->
+    <TextView
+        android:id="@+id/drawerBackHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:text="@string/drawer_back_hint"
+        android:textColor="#60FFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="@string/font_medium"
+        android:letterSpacing="0.12"
+        android:textAllCaps="true" />
+
+</FrameLayout>

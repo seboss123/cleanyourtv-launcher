@@ -905,6 +905,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return true;
         });
 
+        // All Apps button: opens the full-screen app drawer.
+        View btnAllApps = findViewById(R.id.btnAllApps);
+        btnAllApps.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, AppDrawerActivity.class));
+        });
+
         // Keep focus on the top bar at its ends and at the top: Android's focus finder would otherwise
         // jump to a tile far below when there is nothing in that direction.
         boolean rtlMenuBar = getResources().getBoolean(R.bool.rtl_menu_bar);
@@ -928,9 +934,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnSettings.setOnKeyListener(pillKeys);
         btnReorder.setOnKeyListener(pillKeys);
         btnLibraryTop.setOnKeyListener(pillKeys);
+        btnAllApps.setOnKeyListener(pillKeys);
         for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
         if (advancedEffects) {
-            List<View> pills = new ArrayList<>(Arrays.asList(btnInputs, btnWifi, btnVpn, btnReorder, btnLibraryTop, btnSettings));
+            List<View> pills = new ArrayList<>(Arrays.asList(btnInputs, btnWifi, btnVpn, btnReorder, btnLibraryTop, btnSettings, btnAllApps));
             pills.addAll(topAppButtons);
             for (View button : pills) {
                 button.setOnFocusChangeListener((view, focused) -> view.animate()

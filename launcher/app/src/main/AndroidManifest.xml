@@ -146,6 +146,14 @@
             android:taskAffinity=""
             android:excludeFromRecents="true"
             android:theme="@style/Theme.TvHome" />
+        <!-- Full-screen app drawer: all installed apps, opened from Home (long-press home or library). -->
+        <activity
+            android:name=".AppDrawerActivity"
+            android:exported="false"
+            android:taskAffinity=""
+            android:screenOrientation="landscape"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.TvHome" />
         <!-- Home button for remotes that send KEYCODE_ALL_APPS (Xiaomi). Opt-in: HOME_KEY_SERVICE=1
              build-and-install.sh; see HomeKeyService. -->
         <service
