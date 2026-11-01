@@ -534,4 +534,10 @@
     <!-- Tiles drawn from the app's icon and name instead of its banner (for banners that crop badly). -->
     <string-array name="icon_tiles" translatable="false">
     </string-array>
+
+    <!-- Lofi music stream URL for background playback. Empty uses the default stream. -->
+    <string name="lofi_stream_url" translatable="false"></string>
+
+    <!-- Home Assistant base URL for quick launch. Empty disables the row. -->
+    <string name="home_assistant_url" translatable="false">http://homeassistant.local:8123</string>
 </resources>

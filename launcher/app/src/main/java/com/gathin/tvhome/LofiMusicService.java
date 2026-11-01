@@ -44,6 +44,9 @@ public class LofiMusicService extends Service implements MediaPlayer.OnPreparedL
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Android 14 requires startForeground() immediately
+        startForeground(NOTIFICATION_ID, buildNotification("Starting..."));
+
         if (intent != null) {
             String action = intent.getAction();
             if ("PLAY".equals(action)) {
@@ -57,6 +60,26 @@ public class LofiMusicService extends Service implements MediaPlayer.OnPreparedL
             }
         }
         return START_STICKY;
+    }
+
+    private Notification buildNotification(String text) {
+        Intent toggleIntent = new Intent(this, LofiMusicService.class).setAction("TOGGLE");
+        PendingIntent togglePending = PendingIntent.getService(this, 0, toggleIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent stopIntent = new Intent(this, LofiMusicService.class).setAction("STOP");
+        PendingIntent stopPending = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Lofi Music")
+                .setContentText(text)
+                .setSmallIcon(R.drawable.ic_music_note)
+                .setOngoing(isPlaying)
+                .addAction(isPlaying ? R.drawable.ic_pause : R.drawable.ic_play_arrow, isPlaying ? "Pause" : "Play", togglePending)
+                .addAction(R.drawable.ic_stop, "Stop", stopPending)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .build();
     }
 
     private void play() {
@@ -135,24 +158,7 @@ public class LofiMusicService extends Service implements MediaPlayer.OnPreparedL
     }
 
     private void updateNotification() {
-        Intent toggleIntent = new Intent(this, LofiMusicService.class).setAction("TOGGLE");
-        PendingIntent togglePending = PendingIntent.getService(this, 0, toggleIntent, PendingIntent.FLAG_IMMUTABLE);
-
-        Intent stopIntent = new Intent(this, LofiMusicService.class).setAction("STOP");
-        PendingIntent stopPending = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE);
-
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Lofi Music")
-                .setContentText(isPlaying ? "Playing..." : "Paused")
-                .setSmallIcon(R.drawable.ic_music_note)
-                .setOngoing(isPlaying)
-                .addAction(isPlaying ? R.drawable.ic_pause : R.drawable.ic_play_arrow, isPlaying ? "Pause" : "Play", togglePending)
-                .addAction(R.drawable.ic_stop, "Stop", stopPending)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .build();
-
+        Notification notification = buildNotification(isPlaying ? "Playing..." : "Paused");
         startForeground(NOTIFICATION_ID, notification);
     }
 
