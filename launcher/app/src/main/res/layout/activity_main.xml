@@ -381,12 +381,26 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- The wrapper clips at the grid's edge; the grid itself must not clip so scaled tiles can overflow their cells. -->
+        <!-- Category header row (Projectivy-style "channels" label). -->
+        <TextView
+            android:id="@+id/categoryLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/category_apps"
+            android:textColor="#A6FFFFFF"
+            android:textSize="15sp"
+            android:fontFamily="@string/font_medium"
+            android:letterSpacing="0.16"
+            android:textAllCaps="true" />
+
+        <!-- App grid: tiles that scale when focused. -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="8dp">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid"
@@ -401,10 +415,18 @@
                 android:overScrollMode="never"
                 android:scrollbars="none"
                 android:descendantFocusability="afterDescendants" />
-        </FrameLayout>
+        <!-- Page indicator dots (Projectivy-style multiple home screens). -->
+        <LinearLayout
+            android:id="@+id/pageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal" />
     </LinearLayout>
 
-    <!-- The single floating glass highlight that springs between tiles. -->
+    <!-- Glass highlight that springs between tiles. -->
     <com.gathin.tvhome.GlassView
         android:id="@+id/glass"
         android:layout_width="10dp"
@@ -412,14 +434,10 @@
         android:alpha="0"
         android:importantForAccessibility="no" />
 
-    <!-- Pixel art animal overlay for lofi theme -->
-    <ImageView
-        android:id="@+id/animalOverlay"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        android:src="@drawable/ic_pixel_cat"
-        android:alpha="0.6"
+    <!-- Roaming animated pixel animals (lofi zoo — weather-reactive). -->
+    <com.gathin.tvhome.AnimalView
+        android:id="@+id/animalView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:importantForAccessibility="no" />
 </FrameLayout>

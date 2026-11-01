@@ -145,13 +145,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private FrameLayout root;
     private WallpaperPlayer wallpaperPlayer;
     private GlassView glass;
-    private ImageView animalOverlay;
+    private AnimalView animalView;
     private View ambient;
     private TextView heroName;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
     private LinearLayout heroDots;
+    private LinearLayout pageIndicator;
     /** Cinematic top shelf (config.xml, cinematic_home): the focused dock app's artwork behind a larger shelf. */
     private boolean cinematic;
     /** config.xml ambient_glow, overridable by a theme. Off: the glow view is gone and no fade or colour animator
@@ -504,14 +505,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         wallpaperPlayer = new WallpaperPlayer(this, root, cfg);
         WeatherFetcher.fetch(this, (condition, temp) -> {
             if (wallpaperPlayer != null) wallpaperPlayer.setWeatherCondition(condition);
-            updateAnimalOverlay(condition);
+            if (animalView != null) animalView.setWeather(condition, isNight());
         });
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
         glass = findViewById(R.id.glass);
         glass.setStyle(cfg.glassStyle);
-        animalOverlay = findViewById(R.id.animalOverlay);
-        updateAnimalOverlay(WeatherFetcher.getCachedCondition(this));
+        animalView = findViewById(R.id.animalView);
+        if (animalView != null) animalView.setWeather(WeatherFetcher.getCachedCondition(this), isNight());
+        pageIndicator = findViewById(R.id.pageIndicator);
+        setupPageIndicator();
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -2764,28 +2767,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (lunar) lunarDate.setText(Lunar.today(getResources(), lunarOffset));
     }
 
-    private void updateAnimalOverlay(String weather) {
-        if (animalOverlay == null) return;
-        int resId;
-        if (weather == null) weather = WeatherFetcher.getCachedCondition(this);
-        switch (weather) {
-            case WeatherFetcher.CONDITION_RAIN:
-            case WeatherFetcher.CONDITION_DRIZZLE:
-            case WeatherFetcher.CONDITION_THUNDERSTORM:
-                resId = R.drawable.ic_pixel_fish;
-                break;
-            case WeatherFetcher.CONDITION_SNOW:
-                resId = R.drawable.ic_pixel_rabbit;
-                break;
-            case WeatherFetcher.CONDITION_CLOUDS:
-            case WeatherFetcher.CONDITION_FOG:
-                resId = R.drawable.ic_pixel_dog;
-                break;
-            default:
-                resId = R.drawable.ic_pixel_cat;
-                break;
+    private boolean isNight() {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        return hour < 7 || hour >= 21;
+    }
+
+    private void setupPageIndicator() {
+        if (pageIndicator == null) return;
+        pageIndicator.removeAllViews();
+        int pageCount = 3; // three home screens like Projectivy
+        int dotSize = dpToPx(8);
+        int dotSpacing = dpToPx(16);
+        for (int i = 0; i < pageCount; i++) {
+            View dot = new View(this);
+            dot.setBackgroundResource(i == 0 ? R.drawable.page_dot_active : R.drawable.page_dot_inactive);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dotSize, dotSize);
+            if (i > 0) params.leftMargin = dotSpacing;
+            dot.setLayoutParams(params);
+            pageIndicator.addView(dot);
         }
-        animalOverlay.setImageResource(resId);
+    }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
     // ---- race-weekend panel (a theme's race_calendar) -----------------------------------------------
