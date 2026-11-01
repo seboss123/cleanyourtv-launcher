@@ -60,7 +60,9 @@ final class ClockScene {
     private long shownMs;
     private String order;
     private Map<String, Set<String>> moods;
+    private String weatherCondition;
     private String latitude, longitude;
+    private final Context context;
 
     private final Runnable tick = new Runnable() {
         @Override
@@ -73,7 +75,8 @@ final class ClockScene {
     };
 
     /** root is the inflated dream_clock layout. */
-    ClockScene(View root) {
+    ClockScene(View root, Context ctx) {
+        context = ctx.getApplicationContext();
         content = root.findViewById(R.id.dreamContent);
         ambient = root.findViewById(R.id.dreamAmbient);
         glow = new GradientDrawable();
@@ -148,6 +151,10 @@ final class ClockScene {
         wallpaperRes = ctx.getResources();
     }
 
+    void setWeatherCondition(String condition) {
+        this.weatherCondition = condition;
+    }
+
     private void loadWallpaper() {
         File file = wallpaperFile;
         int shade = wallpaperShade;
@@ -218,8 +225,11 @@ final class ClockScene {
         if (moods.isEmpty()) return rotation;
         LocalDateTime now = LocalDateTime.now();
         int[] sun = WallpaperMood.sun(now.toLocalDate(), latitude, longitude, ZoneId.systemDefault());
-        return WallpaperMood.select(rotation, moods,
-                WallpaperMood.timeOfDay(now.getHour() * 60 + now.getMinute(), sun[0], sun[1]));
+        if (weatherCondition == null || weatherCondition.isEmpty()) {
+            weatherCondition = WeatherFetcher.getCachedCondition(context);
+        }
+        String mood = WallpaperMood.timeOfDay(weatherCondition, now.getHour() * 60 + now.getMinute(), sun[0], sun[1]);
+        return WallpaperMood.select(rotation, moods, mood, weatherCondition);
     }
 
     private void moveClock() {

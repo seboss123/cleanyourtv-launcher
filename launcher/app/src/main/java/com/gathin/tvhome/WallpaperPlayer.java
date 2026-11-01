@@ -57,6 +57,12 @@ final class WallpaperPlayer {
     private final Map<String, String> names;
     /** wallpaper_moods: the collection's groups by time of day; empty rotates through all of it. */
     private final Map<String, Set<String>> moods;
+    /** Current weather condition for weather-aware wallpaper selection. */
+    private String weatherCondition;
+    
+    void setWeatherCondition(String condition) {
+        this.weatherCondition = condition;
+    }
     /** config.xml latitude and longitude for the sun's times, and today's {sunrise, sunset} once worked out. */
     private final String latitude, longitude;
     private LocalDate sunDay;
@@ -156,7 +162,8 @@ final class WallpaperPlayer {
             sunDay = now.toLocalDate();
             sun = WallpaperMood.sun(sunDay, latitude, longitude, ZoneId.systemDefault());
         }
-        return WallpaperMood.select(files, moods, WallpaperMood.timeOfDay(now.getHour() * 60 + now.getMinute(), sun[0], sun[1]));
+        String mood = WallpaperMood.timeOfDay(weatherCondition, now.getHour() * 60 + now.getMinute(), sun[0], sun[1]);
+        return WallpaperMood.select(files, moods, mood, weatherCondition);
     }
 
     void close() {

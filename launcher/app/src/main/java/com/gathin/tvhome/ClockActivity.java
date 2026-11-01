@@ -28,8 +28,11 @@ public class ClockActivity extends Activity {
         ClockFormat.apply(getWindow().getDecorView(), Config.load(this).clockFormat);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE);
-        scene = new ClockScene(getWindow().getDecorView());
+        scene = new ClockScene(getWindow().getDecorView(), this);
         scene.useHomeWallpaper(this);
+        WeatherFetcher.fetch(this, (condition, temp) -> {
+            scene.setWeatherCondition(condition);
+        });
     }
 
     @Override

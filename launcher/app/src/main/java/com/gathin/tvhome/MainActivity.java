@@ -145,6 +145,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private FrameLayout root;
     private WallpaperPlayer wallpaperPlayer;
     private GlassView glass;
+    private ImageView animalOverlay;
     private View ambient;
     private TextView heroName;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
@@ -501,10 +502,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // the theme's background, so launch looks the same.
         getWindow().setBackgroundDrawable(null);
         wallpaperPlayer = new WallpaperPlayer(this, root, cfg);
+        WeatherFetcher.fetch(this, (condition, temp) -> {
+            if (wallpaperPlayer != null) wallpaperPlayer.setWeatherCondition(condition);
+            updateAnimalOverlay(condition);
+        });
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
         glass = findViewById(R.id.glass);
         glass.setStyle(cfg.glassStyle);
+        animalOverlay = findViewById(R.id.animalOverlay);
+        updateAnimalOverlay(WeatherFetcher.getCachedCondition(this));
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -2755,6 +2762,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         if (shamsi) shamsiDate.setText(Shamsi.today(getResources()));
         if (lunar) lunarDate.setText(Lunar.today(getResources(), lunarOffset));
+    }
+
+    private void updateAnimalOverlay(String weather) {
+        if (animalOverlay == null) return;
+        int resId;
+        if (weather == null) weather = WeatherFetcher.getCachedCondition(this);
+        switch (weather) {
+            case WeatherFetcher.CONDITION_RAIN:
+            case WeatherFetcher.CONDITION_DRIZZLE:
+            case WeatherFetcher.CONDITION_THUNDERSTORM:
+                resId = R.drawable.ic_pixel_fish;
+                break;
+            case WeatherFetcher.CONDITION_SNOW:
+                resId = R.drawable.ic_pixel_rabbit;
+                break;
+            case WeatherFetcher.CONDITION_CLOUDS:
+            case WeatherFetcher.CONDITION_FOG:
+                resId = R.drawable.ic_pixel_dog;
+                break;
+            default:
+                resId = R.drawable.ic_pixel_cat;
+                break;
+        }
+        animalOverlay.setImageResource(resId);
     }
 
     // ---- race-weekend panel (a theme's race_calendar) -----------------------------------------------

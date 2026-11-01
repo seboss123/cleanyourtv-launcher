@@ -18,8 +18,11 @@ public class ClockDream extends DreamService {
         setScreenBright(false);
         setContentView(R.layout.dream_clock);
         ClockFormat.apply(getWindow().getDecorView(), Config.load(this).clockFormat);
-        scene = new ClockScene(getWindow().getDecorView());
+        scene = new ClockScene(getWindow().getDecorView(), this);
         scene.useHomeWallpaper(this);
+        WeatherFetcher.fetch(this, (condition, temp) -> {
+            scene.setWeatherCondition(condition);
+        });
     }
 
     @Override

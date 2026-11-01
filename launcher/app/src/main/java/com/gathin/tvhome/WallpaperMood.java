@@ -33,6 +33,13 @@ final class WallpaperMood {
         return NIGHT;
     }
 
+    /** Weather-aware mood: combines weather condition with time of day, e.g. "clear-morning", "rain-night". */
+    static String timeOfDay(String weather, int minute, int sunrise, int sunset) {
+        String time = timeOfDay(minute, sunrise, sunset);
+        if (weather == null || weather.isEmpty()) return time;
+        return weather + "-" + time;
+    }
+
     /** That day's {sunrise, sunset} at config.xml's latitude and longitude; the defaults when either is unusable. */
     static int[] sun(LocalDate day, String latitude, String longitude, ZoneId zone) {
         int[] times = null;
@@ -53,5 +60,19 @@ final class WallpaperMood {
         List<File> group = new ArrayList<>();
         for (File file : all) if (names.contains(file.getName())) group.add(file);
         return group.isEmpty() ? all : group;
+    }
+
+    /** Weather-aware select: tries "weather-morning" first, falls back to time-only mood. */
+    static List<File> select(List<File> all, Map<String, Set<String>> groups, String mood, String weather) {
+        if (weather != null && !weather.isEmpty()) {
+            String weatherMood = weather + "-" + mood;
+            Set<String> names = groups.get(weatherMood);
+            if (names != null && !names.isEmpty()) {
+                List<File> group = new ArrayList<>();
+                for (File file : all) if (names.contains(file.getName())) group.add(file);
+                if (!group.isEmpty()) return group;
+            }
+        }
+        return select(all, groups, mood);
     }
 }
