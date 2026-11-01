@@ -257,8 +257,7 @@
         <service
             android:name=".LofiMusicService"
             android:exported="false"
-            android:label="@string/lofi_music_name"
-            android:foregroundServiceType="mediaPlayback" />
+            android:label="@string/lofi_music_name" />
 
     </application>
 </manifest>

@@ -1,5 +1,6 @@
 package com.gathin.tvhome;
 
+import android.content.Context;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,7 +17,8 @@ import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 
-/*** Background lofi music playback service. Plays a stream URL from config.**/public class LofiMusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+/*** Background lofi music playback service. Plays a stream URL from config. */
+public class LofiMusicService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
     private static final String TAG = "TvHome.LofiMusic";
     private static final String CHANNEL_ID = "lofi_music";
     private static final int NOTIFICATION_ID = 1001;
