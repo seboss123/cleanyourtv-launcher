@@ -434,7 +434,6 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:fadeScrollbars="false"
-            android:horizontalScrollbarVisibility="never"
             android:scrollbars="none">
 
             <LinearLayout
