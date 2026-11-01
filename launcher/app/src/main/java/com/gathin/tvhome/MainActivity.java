@@ -151,6 +151,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView quoteText;
     private TextView quoteAuthor;
     private LinearLayout categoryChipContainer;
+    private LinearLayout channelRowsContainer;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -526,6 +527,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (quoteAuthor != null) quoteAuthor.setText("— " + author);
         });
         setupCategoryChips();
+        setupChannelRows();
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -2837,6 +2839,49 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             });
 
             categoryChipContainer.addView(chip);
+        }
+    }
+
+    private void setupChannelRows() {
+        if (channelRowsContainer == null) return;
+        channelRowsContainer.removeAllViews();
+
+        // Channel categories: each row shows apps from one area.
+        String[][] channels = {
+                {getString(R.string.category_streaming), "org.smarttube.beta", "com.lagradost.cloudstream3", "com.android.vending"},
+                {getString(R.string.category_media), "com.esaba.downloader", "com.android.vending"},
+                {getString(R.string.category_games)},
+                {getString(R.string.category_utilities)},
+        };
+
+        int rowSpacing = dpToPx(16);
+        int rowHeight = dpToPx(150);
+
+        for (String[] channel : channels) {
+            String categoryName = channel[0];
+            List<String> pkgList = new ArrayList<>();
+            for (int i = 1; i < channel.length; i++) pkgList.add(channel[i]);
+
+            ChannelRowView row = new ChannelRowView(this);
+            row.setCategory(categoryName, pkgList);
+
+            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, rowHeight);
+            rowParams.topMargin = rowSpacing;
+            row.setLayoutParams(rowParams);
+
+            row.setOnChannelTileClickListener((pkg, cls, cat) -> {
+                try {
+                    Intent intent = new Intent();
+                    intent.setClassName(pkg, cls);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    // Ignore launch failures
+                }
+            });
+
+            channelRowsContainer.addView(row);
         }
     }
 
