@@ -80,15 +80,18 @@ public class QuoteFetcher {
                 author = "Chinese proverb";
             }
 
+            final String finalQuote = quote;
+            final String finalAuthor = author;
+
             // Cache for today
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString(KEY_DATE, today);
-            editor.putString(KEY_QUOTE, quote);
-            editor.putString(KEY_AUTHOR, author);
+            editor.putString(KEY_QUOTE, finalQuote);
+            editor.putString(KEY_AUTHOR, finalAuthor);
             editor.apply();
 
             new android.os.Handler(android.os.Looper.getMainLooper())
-                    .post(() -> callback.onQuote(quote, author));
+                    .post(() -> callback.onQuote(finalQuote, finalAuthor));
         }).start();
     }
 
