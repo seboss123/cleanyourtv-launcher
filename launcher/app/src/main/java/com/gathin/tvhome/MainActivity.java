@@ -151,6 +151,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView quoteText;
     private TextView quoteAuthor;
     private LinearLayout categoryChipContainer;
+    private DockCarouselView dockCarousel;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -526,6 +527,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (quoteAuthor != null) quoteAuthor.setText("— " + author);
         });
         setupCategoryChips();
+        dockCarousel = findViewById(R.id.dockCarousel);
+        dockCarousel.setDockApps(cfg.dockApps);
+        dockCarousel.setOnDockTileClickListener((pkg, cls) -> {
+            try {
+                android.content.Intent intent = new android.content.Intent();
+                intent.setClassName(pkg, cls);
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } catch (Exception e) {
+                // Ignore launch failures
+            }
+        });
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
