@@ -2,8 +2,9 @@
   "wallpaper": true,
   "wallpaper_rotation_minutes": 30,
   "wallpaper_moods": {
-    "clear-morning": ["clear-day.png"],
-    "clear-evening": ["clear-day.png"],
+    "clear-morning": ["sunrise.png"],
+    "clear-day": ["clear-day.png"],
+    "clear-evening": ["sunset.png"],
     "clear-night": ["clear-night.png"],
     "clouds-morning": ["clouds-day.png"],
     "clouds-day": ["clouds-day.png"],
