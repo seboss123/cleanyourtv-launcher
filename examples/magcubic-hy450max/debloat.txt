@@ -1,0 +1,93 @@
+# Magicubic HY450MAX (ADT-3, Rockchip), Android 14 (SDK 34)
+# Stock launcher: com.htc.magcubicos
+# Apply:   TV_HOST=<ip> tools/disable.sh examples/magcubic-hy450max/debloat.txt
+# Launcher: TV_HOST=<ip> STOCK_LAUNCHER=com.htc.magcubicos launcher/build-and-install.sh
+# Undo:    TV_HOST=<ip> tools/restore.sh examples/magcubic-hy450max/debloat.txt com.htc.magcubicos
+# Everything is DISABLED, not uninstalled. Comment out anything you use.
+
+# Kept on purpose:
+# - com.htc.magcubicos: stock Home (disabled by install script, not this list)
+# - com.htc.htcotaupdate, com.softwinner.update: firmware updaters
+# - com.softwinner.awsource, com.softwinner.vis, com.softwinner.awlivetv: HDMI/input handling
+# - com.hysd.vafocus: auto keystone/autofocus
+# - com.android.ytb, com.android.nfx: YouTube/Netflix remote key accessibility services
+# - com.htc.hyk_test, com.softwinner.tv.factorymenu: factory/test (not started, not disabled)
+# - com.google.android.gms, com.google.android.gsf, com.android.vending: Play Services/Store (needed for app updates)
+# - org.videolan.vlc: VLC media player
+# - org.smarttube.beta: SmartTube
+# - com.lagradost.cloudstream3: CloudStream
+# - com.mxtech.videoplayer.pro: MX Player Pro
+# - com.instantbits.cast.receiver: Cast receiver
+# - com.htc.htcbluetoothremotecontrol: BT remote
+# - com.google.android.youtube.tv: YouTube
+# - com.esaba.downloader: Downloader
+
+# Apps nobody asked for
+com.android.music
+com.android.calculator2
+com.android.htmlviewer
+com.android.egg
+com.android.dreams.web
+com.android.wallpaperbackup
+
+# Printing
+com.android.bips
+com.android.printspooler
+com.android.printservice.recommendation
+
+# Aptoid TV store
+cm.aptoidetv.pt
+
+# Vendor app store
+com.htc.storeos
+
+# Screen mirroring - keep if you cast from phone
+# com.softwinner.miracastReceiver
+
+# AirPlay/DLNA - keep if you use them
+# com.mphotool.airplay
+# com.mphotool.dlna
+
+# Phone remote service (no auth, has mic/camera/location) - disable unless you use it
+com.android.toofifi
+com.toofifi.lineserver
+com.mphotool.usbcastserver
+
+# Preloaded apps you may not need
+com.mobisystems.office
+com.hotack.screensaversdk
+com.hisilicon.explorer
+com.spocky.projengmenu
+com.softwinner.TvdVideo
+com.softwinner.miracastReceiver
+com.softwinner.camera2.config
+com.softwinner.imageParser
+com.softwinner.settingsassist
+com.softwinner.settingssetup
+com.softwinner.theme.color
+com.softwinner.awmanager
+com.softwinner.provision
+com.softwinner.screenshot
+com.allwinnertech.packageoverride
+
+# Google TV bits
+com.google.android.katniss
+com.google.android.backdrop
+com.google.android.apps.searchlite.overlay
+com.google.android.connectivity.resources.config
+com.google.android.go.networkstack.config
+com.google.android.wifi.resources.config
+com.google.android.onetimeinitializer
+# com.google.android.overlay.modules.captiveportallogin.forframework  # core, keep enabled
+
+# Analytics/telemetry
+com.htc.clearmemory
+com.htc.closedialog
+com.htc.samescreen
+com.htc.screensaver
+
+# Setup wizard
+com.htc.htcsetup_wizard_d55
+
+# USB cast server
+com.mphotool.usbcastserver
