@@ -148,6 +148,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private AnimalView animalView;
     private View ambient;
     private TextView heroName;
+    private TextView quoteText;
+    private TextView quoteAuthor;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -515,6 +517,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (animalView != null) animalView.setWeather(WeatherFetcher.getCachedCondition(this), isNight());
         pageIndicator = findViewById(R.id.pageIndicator);
         setupPageIndicator();
+        quoteText = findViewById(R.id.quoteText);
+        quoteAuthor = findViewById(R.id.quoteAuthor);
+        QuoteFetcher.fetch(this, (quote, author) -> {
+            if (quoteText != null) quoteText.setText(quote);
+            if (quoteAuthor != null) quoteAuthor.setText("— " + author);
+        });
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
