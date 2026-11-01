@@ -71,6 +71,9 @@
     <string name="quick_network">Network</string>
     <string name="quick_apps">Apps</string>
     <string name="quick_apps_hint">Re-enable</string>
+    <string name="quick_lofi_music">Lofi Music</string>
+    <string name="quick_home_assistant">Home Assistant</string>
+    <string name="quick_home_assistant_hint">Home automation</string>
     <string name="on">On</string>
     <string name="off">Off</string>
     <string name="enable">Enable</string>

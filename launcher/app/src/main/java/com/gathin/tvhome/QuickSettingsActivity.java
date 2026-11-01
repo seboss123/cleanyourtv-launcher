@@ -18,6 +18,9 @@ import android.widget.Toast;
  * closes the panel.
  */
 public final class QuickSettingsActivity extends Activity {
+    /** Background lofi music playback state. */
+    private boolean lofiPlaying = false;
+
     @Override
     protected void attachBaseContext(android.content.Context base) {
         super.attachBaseContext(LauncherLocale.wrap(base));   // locale
@@ -48,6 +51,8 @@ public final class QuickSettingsActivity extends Activity {
         // Through Home, so it rebuilds with the new choices when Launcher settings closes.
         addRow(rows, R.drawable.ic_home_settings, R.string.launcher_settings, 0,
                 new Intent(this, MainActivity.class).setAction(MainActivity.ACTION_LAUNCHER_SETTINGS));
+        addLofiMusicRow(rows);
+        addHomeAssistantRow(rows);
         rows.getChildAt(0).requestFocus();
     }
 
@@ -65,6 +70,47 @@ public final class QuickSettingsActivity extends Activity {
         super.onPause();
         finish();
         overridePendingTransition(0, 0);
+    }
+
+    private void addLofiMusicRow(LinearLayout rows) {
+        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(lofiPlaying ? R.drawable.ic_pause : R.drawable.ic_play_arrow);
+        ((TextView) row.findViewById(R.id.title)).setText(R.string.quick_lofi_music);
+        row.findViewById(R.id.dot).setVisibility(View.GONE);
+        TextView hint = row.findViewById(R.id.status);
+        hint.setText(lofiPlaying ? R.string.on : R.string.off);
+        row.setOnClickListener(v -> {
+            lofiPlaying = !lofiPlaying;
+            if (lofiPlaying) {
+                LofiMusicService.start(QuickSettingsActivity.this);
+            } else {
+                LofiMusicService.stop(QuickSettingsActivity.this);
+            }
+            // Refresh this row
+            ((ImageView) row.findViewById(R.id.icon)).setImageResource(lofiPlaying ? R.drawable.ic_pause : R.drawable.ic_play_arrow);
+            hint.setText(lofiPlaying ? R.string.on : R.string.off);
+        });
+        rows.addView(row);
+    }
+
+    private void addHomeAssistantRow(LinearLayout rows) {
+        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_settings);
+        ((TextView) row.findViewById(R.id.title)).setText(R.string.quick_home_assistant);
+        row.findViewById(R.id.dot).setVisibility(View.GONE);
+        TextView hint = row.findViewById(R.id.status);
+        hint.setText(R.string.quick_home_assistant_hint);
+        row.setOnClickListener(v -> {
+            try {
+                // Open Home Assistant web UI - user can configure their URL in config.xml
+                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("http://homeassistant.local:8123"));
+                startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+            }
+            finish();
+        });
+        rows.addView(row);
     }
 
     private void addRow(LinearLayout rows, int icon, int title, int status, Intent target) {
