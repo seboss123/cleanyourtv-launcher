@@ -150,6 +150,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView heroName;
     private TextView quoteText;
     private TextView quoteAuthor;
+    private LinearLayout categoryChipContainer;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -508,6 +509,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         WeatherFetcher.fetch(this, (condition, temp) -> {
             if (wallpaperPlayer != null) wallpaperPlayer.setWeatherCondition(condition);
             if (animalView != null) animalView.setWeather(condition, isNight());
+            if (sky != null) sky.setWeather(condition);
         });
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
@@ -523,6 +525,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (quoteText != null) quoteText.setText(quote);
             if (quoteAuthor != null) quoteAuthor.setText("— " + author);
         });
+        setupCategoryChips();
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -2779,6 +2782,54 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         return hour < 7 || hour >= 21;
+    }
+
+    private void setupCategoryChips() {
+        if (categoryChipContainer == null) return;
+        categoryChipContainer.removeAllViews();
+
+        String[] categories = {
+                getString(R.string.category_all),
+                getString(R.string.category_streaming),
+                getString(R.string.category_media),
+                getString(R.string.category_games),
+                getString(R.string.category_utilities),
+        };
+
+        int chipSize = dpToPx(64);
+        int chipSpacing = dpToPx(12);
+        int selectedBg = R.drawable.bg_category_chip_selected;
+        int unselectedBg = R.drawable.bg_category_chip;
+
+        for (int i = 0; i < categories.length; i++) {
+            TextView chip = new TextView(this);
+            chip.setText(categories[i]);
+            chip.setTextSize(15f);
+            chip.setTextColor(i == 0 ? 0xFFFFFFFF : 0xB3FFFFFF);
+            chip.setBackgroundResource(i == 0 ? selectedBg : unselectedBg);
+            chip.setGravity(android.view.Gravity.CENTER);
+            chip.setAllCaps(true);
+            chip.setLetterSpacing(0.1f);
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    chipSize, LinearLayout.LayoutParams.WRAP_CONTENT);
+            if (i > 0) params.leftMargin = chipSpacing;
+            chip.setLayoutParams(params);
+            chip.setFocusable(true);
+            chip.setFocusableInTouchMode(true);
+
+            final int index = i;
+            chip.setOnClickListener(v -> {
+                for (int j = 0; j < categoryChipContainer.getChildCount(); j++) {
+                    View child = categoryChipContainer.getChildAt(j);
+                    child.setBackgroundResource(j == index ? selectedBg : unselectedBg);
+                    ((TextView) child).setTextColor(j == index ? 0xFFFFFFFF : 0xB3FFFFFF);
+                }
+                // TODO: filter the grid to this category
+            });
+
+            categoryChipContainer.addView(chip);
+        }
     }
 
     private void setupPageIndicator() {

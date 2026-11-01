@@ -23,6 +23,9 @@ import java.util.Calendar;
  * glow that travels with the sun. Off by default (config.xml, sky_intensity = 0); a theme turns
  * it on with {@code "sky_intensity": 60}.
  *
+ * Weather-reactive: rain/storm shifts to storm-gray, snow to cold white-blue, clouds to muted
+ * blue-gray, clear uses the normal time-of-day cycle.
+ *
  * Like the ambient glow, the backdrop is one small bitmap (480x270) stretched over the screen:
  * a gradient repainted at full resolution every minute is exactly the CPU cost the ambient glow
  * was rewritten to avoid on weak GPUs. It is redrawn once a minute and never animated, so the
@@ -42,6 +45,7 @@ public class SkyView extends View {
     /** Opacity of the whole backdrop, 0 to 255, from sky_intensity. */
     private int intensity;
     private int lastMinute = -1;
+    private String lastWeather = null;
     private Bitmap texture;
     private BitmapDrawable drawable;
 
@@ -61,6 +65,13 @@ public class SkyView extends View {
     public void update() {
         if (intensity == 0 || getVisibility() != VISIBLE) return;
         render(false);
+    }
+
+    /** Call when the weather changes so the sky shifts to match (storm-gray for rain, etc.). */
+    public void setWeather(String weather) {
+        if (weather.equals(lastWeather)) return;
+        lastWeather = weather;
+        if (intensity > 0) render(true);
     }
 
     @Override
@@ -86,11 +97,28 @@ public class SkyView extends View {
     private void render(boolean force) {
         Calendar now = Calendar.getInstance();
         int minute = Sky.minuteOfDay(now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE));
-        if (!force && minute == lastMinute) return;
+        if (!force && minute == lastMinute && lastWeather != null) return;
         lastMinute = minute;
 
         int[] sun = sunTimes();
         Sky.Palette sky = sun == null ? Sky.at(minute) : Sky.at(minute, sun[0], sun[1]);
+
+        // Weather-reactive colour shift: override the time-of-day palette for active weather.
+        if (WeatherFetcher.CONDITION_RAIN.equals(lastWeather)
+                || WeatherFetcher.CONDITION_DRIZZLE.equals(lastWeather)
+                || WeatherFetcher.CONDITION_THUNDERSTORM.equals(lastWeather)) {
+            // Storm sky: cold gray-blue, no sun.
+            sky = new Sky.Palette(0xFF1A202C, 0xFF2D3748, 0xFF4A5568, 0, 0.5f);
+        } else if (WeatherFetcher.CONDITION_SNOW.equals(lastWeather)) {
+            // Snow sky: cold white-blue, faint sun.
+            sky = new Sky.Palette(0xFFE2E8F0, 0xFFCBD5E0, 0xFFA0AEC0, 40, 0.5f);
+        } else if (WeatherFetcher.CONDITION_CLOUDS.equals(lastWeather)
+                || WeatherFetcher.CONDITION_FOG.equals(lastWeather)) {
+            // Cloudy sky: muted blue-gray.
+            sky = new Sky.Palette(0xFF2D3748, 0xFF4A5568, 0xFF718096, 0, 0.5f);
+        }
+        // clear: normal time-of-day cycle (unchanged)
+
         if (texture == null) texture = Bitmap.createBitmap(TEX_W, TEX_H, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(texture);
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);

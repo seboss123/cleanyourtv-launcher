@@ -163,4 +163,9 @@
     <string name="clock_format_12">12-hour</string>
     <string name="clock_format_24">24-hour</string>
     <string name="category_apps">Apps</string>
+    <string name="category_streaming">Streaming</string>
+    <string name="category_media">Media</string>
+    <string name="category_games">Games</string>
+    <string name="category_utilities">Utilities</string>
+    <string name="category_all">All Apps</string>
 </resources>
