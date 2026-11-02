@@ -32,6 +32,17 @@
             android:visibility="gone"
             android:contentDescription="@null" />
 
+        <ImageView
+            android:id="@+id/star"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="6dp"
+            android:src="@drawable/ic_star"
+            android:tint="#FFD700"
+            android:visibility="gone"
+            android:contentDescription="@null" />
+
         <TextView
             android:id="@+id/label"
             android:layout_width="match_parent"

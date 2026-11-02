@@ -84,7 +84,9 @@ public class AnimalView extends RelativeLayout {
             addAnimal(types.get(i));
         }
 
-        startRoaming();
+        if (screenW > 0 && screenH > 0) {
+            startRoaming();
+        }
     }
 
     private int animalCountForWeather() {
@@ -160,8 +162,11 @@ public class AnimalView extends RelativeLayout {
 
         addView(animalView);
 
-        animals.add(new AnimalEntry(animalView, type, randomNextPosition()));
-        moveAnimalTo(animals.size() - 1);
+        int[] initialPos = (screenW > 0 && screenH > 0) ? randomNextPosition() : new int[]{0, 0};
+        animals.add(new AnimalEntry(animalView, type, initialPos));
+        if (screenW > 0 && screenH > 0) {
+            moveAnimalTo(animals.size() - 1);
+        }
     }
 
     private int getAnimResId(String type) {
@@ -215,8 +220,8 @@ public class AnimalView extends RelativeLayout {
     }
 
     private int[] randomNextPosition() {
-        int maxX = Math.max(0, screenW - dpToPx(ANIMAL_SIZE_DP + 40));
-        int maxY = Math.max(0, screenH - dpToPx(ANIMAL_SIZE_DP + 40));
+        int maxX = Math.max(1, screenW - dpToPx(ANIMAL_SIZE_DP + 40));
+        int maxY = Math.max(1, screenH - dpToPx(ANIMAL_SIZE_DP + 40));
         return new int[] {
             random.nextInt(maxX),
             random.nextInt(maxY)
@@ -230,8 +235,15 @@ public class AnimalView extends RelativeLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
+        boolean firstLayout = (screenW == 0 && screenH == 0);
         screenW = w;
         screenH = h;
+        if (firstLayout && !animals.isEmpty()) {
+            for (int i = 0; i < animals.size(); i++) {
+                moveAnimalTo(i);
+            }
+            startRoaming();
+        }
     }
 
     @Override

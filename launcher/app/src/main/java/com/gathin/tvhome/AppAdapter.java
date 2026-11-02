@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import android.content.SharedPreferences;
 
 /**
  * App tiles. The first {@link MainActivity#COLUMNS} positions are the pinned dock (favourites, fixed order,
@@ -80,6 +81,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         int ambient;
         /** uniform_tiles card fill, top and bottom colour; null until sampled from the icon. */
         int[] backdrop;
+        /** Whether this app is marked as a favorite (starred). */
+        boolean favorite;
 
         Entry(String label, ComponentName component, Drawable banner, Drawable icon) {
             this(APP, label, component, banner, icon, null, 0);
@@ -909,6 +912,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final Drawable cardBackground;
         final ImageView banner;
         final ImageView icon;
+        final ImageView star;
         final TextView label;
         final TextView name;
         final boolean animations;
@@ -927,6 +931,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             cardBackground = card.getBackground();
             banner = v.findViewById(R.id.banner);
             icon = v.findViewById(R.id.icon);
+            star = v.findViewById(R.id.star);
             label = v.findViewById(R.id.label);
             name = v.findViewById(R.id.name);
             this.animations = animations;
@@ -1042,5 +1047,39 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             default:
                 return false;
         }
+    }
+
+    /** Toggle favorite state for the app at {@code position}. Persisted to SharedPreferences. */
+    public void toggleFavorite(int position) {
+        if (position < 0 || position >= items.size()) return;
+        Entry e = items.get(position);
+        e.favorite = !e.favorite;
+        saveFavorites();
+        notifyItemChanged(position);
+    }
+
+    /** Whether the app at {@code position} is favorited. */
+    public boolean isFavorite(int position) {
+        return position >= 0 && position < items.size() && items.get(position).favorite;
+    }
+
+    /** Load favorite states from SharedPreferences. */
+    void loadFavorites(SharedPreferences prefs) {
+        for (Entry e : allItems) {
+            e.favorite = prefs.getBoolean("fav_" + e.pkg, false);
+        }
+        for (Entry e : items) {
+            e.favorite = prefs.getBoolean("fav_" + e.pkg, false);
+        }
+    }
+
+    /** Save favorite states to SharedPreferences. */
+    private void saveFavorites() {
+        SharedPreferences prefs = ctx.getSharedPreferences("tvhome_prefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        for (Entry e : allItems) {
+            editor.putBoolean("fav_" + e.pkg, e.favorite);
+        }
+        editor.apply();
     }
 }
