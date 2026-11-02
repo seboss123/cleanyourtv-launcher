@@ -461,6 +461,15 @@
             android:layout_marginEnd="8dp"
             android:orientation="vertical" />
 
+        <!-- Swipeable dock row: more than 4 dock apps, scroll left/right (item #14). -->
+        <com.gathin.tvhome.DockRowView
+            android:id="@+id/dockRowView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" />
+
         <!-- App grid: tiles that scale when focused. -->
         <FrameLayout
             android:layout_width="match_parent"

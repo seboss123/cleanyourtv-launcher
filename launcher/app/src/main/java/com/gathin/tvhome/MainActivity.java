@@ -153,6 +153,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private TextView quoteAuthor;
     private LinearLayout categoryChipContainer;
     private LinearLayout channelRowsContainer;
+    private DockRowView dockRowView;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -533,6 +534,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         setupCategoryChips();
         setupChannelRows();
+        dockRowView = findViewById(R.id.dockRowView);
+        dockRowView.setDockApps(cfg.dockApps);
+        dockRowView.setOnDockTileClickListener((pkg, cls) -> {
+            try {
+                Intent intent = new Intent();
+                intent.setClassName(pkg, cls);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } catch (Exception e) {
+                // Ignore launch failures
+            }
+        });
         nowPlayingView = findViewById(R.id.nowPlayingView);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
