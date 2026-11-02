@@ -146,6 +146,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private WallpaperPlayer wallpaperPlayer;
     private GlassView glass;
     private AnimalView animalView;
+    private NowPlayingView nowPlayingView;
     private View ambient;
     private TextView heroName;
     private TextView quoteText;
@@ -532,6 +533,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         setupCategoryChips();
         setupChannelRows();
+        nowPlayingView = findViewById(R.id.nowPlayingView);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -1371,6 +1373,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (cardPrompt != null) cardPrompt.dismiss();
         if (appLibrary != null) appLibrary.close();
         if (openPopup != null) openPopup.dismiss();
+        if (nowPlayingView != null) nowPlayingView.release();
     }
 
     @Override

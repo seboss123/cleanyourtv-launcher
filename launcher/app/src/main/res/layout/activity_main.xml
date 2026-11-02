@@ -508,4 +508,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:importantForAccessibility="no" />
+
+    <!-- Now Playing media session strip at bottom. -->
+    <com.gathin.tvhome.NowPlayingView
+        android:id="@+id/nowPlayingView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="gone" />
 </FrameLayout>
