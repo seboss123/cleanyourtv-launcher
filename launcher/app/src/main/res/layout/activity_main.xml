@@ -3,14 +3,15 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF000000">
+    android:background="@drawable/fireplace_bg">
 
-    <!-- Time-of-day backdrop, drawn once a minute (config.xml sky_intensity; 0 keeps it hidden). -->
+    <!-- Fall fireplace background (animated: flickering flames + rising embers). -->
     <com.gathin.tvhome.SkyView
         android:id="@+id/sky"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:importantForAccessibility="no" />
+        android:importantForAccessibility="no"
+        android:visibility="visible" />
 
     <!-- Roaming animated pixel animals (lofi zoo — weather-reactive). Roam behind all UI. -->
     <com.gathin.tvhome.AnimalView

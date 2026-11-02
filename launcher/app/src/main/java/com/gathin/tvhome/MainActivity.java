@@ -567,7 +567,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (quoteAuthor != null) quoteAuthor.setText("— " + author);
         });
         setupCategoryChips();
-        setupChannelRows();
+        // Channel rows removed: they duplicated dock/grid apps (SmartTube, Play Store appeared twice).
+        // setupChannelRows();
         dockRowView = findViewById(R.id.dockRowView);
         dockRowView.setDockApps(cfg.dockApps);
         dockRowView.setOnDockTileClickListener((pkg, cls) -> {
@@ -901,6 +902,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             intent.setData(android.net.Uri.parse("http://homeassistant.local:8123"));
             open(intent);
         });
+        // Auto-play lofi music on app start.
+        Intent lofiStart = new Intent(this, LofiMusicService.class);
+        lofiStart.setAction("PLAY");
+        startForegroundService(lofiStart);
+        lofiPlaying = true;
+        btnLofi.setAlpha(1f);
+        if (nowPlayingView != null) nowPlayingView.setLofi(true);
         btnVpn.setOnClickListener(v -> openVpnPill());
         btnWifi.setOnLongClickListener(v -> {
             open(systemIntent(Settings.ACTION_WIFI_SETTINGS));

@@ -136,63 +136,89 @@ public class SkyView extends View {
     }
 
     private void render(boolean force) {
-        Calendar now = Calendar.getInstance();
-        int minute = Sky.minuteOfDay(now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE));
-        if (!force && minute == lastMinute && lastWeather != null) return;
-        lastMinute = minute;
-
-        int[] sun = sunTimes();
-        Sky.Palette sky = sun == null ? Sky.at(minute) : Sky.at(minute, sun[0], sun[1]);
-
-        // Weather-reactive colour shift: override the time-of-day palette for active weather.
-        if (WeatherFetcher.CONDITION_RAIN.equals(lastWeather)
-                || WeatherFetcher.CONDITION_DRIZZLE.equals(lastWeather)
-                || WeatherFetcher.CONDITION_THUNDERSTORM.equals(lastWeather)) {
-            // Storm sky: cold gray-blue, no sun.
-            sky = new Sky.Palette(0xFF1A202C, 0xFF2D3748, 0xFF4A5568, 0, 0.5f);
-        } else if (WeatherFetcher.CONDITION_SNOW.equals(lastWeather)) {
-            // Snow sky: cold white-blue, faint sun.
-            sky = new Sky.Palette(0xFFE2E8F0, 0xFFCBD5E0, 0xFFA0AEC0, 40, 0.5f);
-        } else if (WeatherFetcher.CONDITION_CLOUDS.equals(lastWeather)
-                || WeatherFetcher.CONDITION_FOG.equals(lastWeather)) {
-            // Cloudy sky: muted blue-gray.
-            sky = new Sky.Palette(0xFF2D3748, 0xFF4A5568, 0xFF718096, 0, 0.5f);
-        }
-        // clear: normal time-of-day cycle (unchanged)
-
+        // Always re-render for animated fireplace: flames flicker every frame (~30 Hz).
         if (texture == null) texture = Bitmap.createBitmap(TEX_W, TEX_H, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(texture);
         canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        // 1. Fall background: deep red -> black gradient.
+        int top = 0xFF2B0A00;   // deep burnt red
+        int mid = 0xFF1A0600;
+        int bottom = 0xFF080000; // near-black
         paint.setShader(new LinearGradient(0f, 0f, 0f, TEX_H,
-                new int[]{sky.top, sky.mid, sky.bottom},
+                new int[]{top, mid, bottom},
                 new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
         canvas.drawRect(0f, 0f, TEX_W, TEX_H, paint);
 
-        // Animated sun: drift horizontally based on time of day, modulated by the animation offset.
-        float sunX;
-        if (sky.sun > 0) {
-            // Map minute of day to a sunX position: sunrise -> left, noon -> center, sunset -> right.
-            // Use the sky's sunX as base, offset by animation.
-            float baseSunX = sky.sunX;
-            sunX = baseSunX + (sunOffset - 0.5f) * 0.15f; // small animated drift around base
-            sunX = Math.max(0.05f, Math.min(0.95f, sunX));
+        // 2. Fireplace opening (center-bottom).
+        float fw = TEX_W * 0.42f;
+        float fh = TEX_H * 0.34f;
+        float fx = (TEX_W - fw) / 2f;
+        float fy = TEX_H - fh - 8;
+        // Stone frame.
+        paint.setShader(null);
+        paint.setColor(0xFF3B1E12);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRoundRect(fx, fy, fx + fw, fy + fh, 14, 14, paint);
+        paint.setColor(0xFF6B3A18);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(4);
+        canvas.drawRoundRect(fx + 2, fy + 2, fx + fw - 2, fy + fh - 2, 12, 12, paint);
+        // Inner firebox (dark).
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xFF120600);
+        canvas.drawRoundRect(fx + 10, fy + 10, fx + fw - 10, fy + fh - 10, 10, 10, paint);
 
-            int warm = Sky.lerpColor(sky.bottom, 0xFFFFD9A0, 0.65f);
-            paint.setShader(new RadialGradient(
-                    sunX * TEX_W, TEX_H * 0.80f, TEX_W * 0.55f,
-                    new int[]{(sky.sun << 24) | (warm & 0x00FFFFFF), warm & 0x00FFFFFF},
-                    new float[]{0f, 1f}, Shader.TileMode.CLAMP));
-            canvas.drawRect(0f, 0f, TEX_W, TEX_H, paint);
+        // 3. Animated flames: flickering teardrop shapes.
+        float flameBaseY = fy + fh - 6;
+        float flameCx = fx + fw / 2f;
+        int flameCount = 7;
+        for (int i = 0; i < flameCount; i++) {
+            // Flame height/width jitter based on animation offset.
+            float phase = sunOffset + i * 0.37f;
+            float fh_ = TEX_H * (0.10f + 0.14f * (0.5f + 0.5f * (float) Math.sin(phase * 6.28f)));
+            float fw_ = TEX_W * (0.03f + 0.05f * (0.5f + 0.5f * (float) Math.cos(phase * 4.0f)));
+            float cx = flameCx + TEX_W * 0.03f * (float) Math.sin((phase + i) * 5.0f);
+            float baseY = flameBaseY - TEX_H * 0.02f * (float) Math.cos(phase * 3.0f);
+            // Gradient: white core -> yellow -> orange -> transparent.
+            int[] colors = {0xFFFFFFFF, 0xFFFFD100, 0xFFFF8C00, 0x00FF4500};
+            float[] stops = {0f, 0.30f, 0.62f, 1f};
+            paint.setShader(new RadialGradient(cx, baseY - fh_ * 0.35f, fh_ * 0.55f, colors, stops, Shader.TileMode.CLAMP));
+            // Teardrop: wide at top, narrow at bottom.
+            float topW = fw_ * 1.6f;
+            float botW = fw_ * 0.25f;
+            float midY = baseY - fh_ * 0.5f;
+            canvas.drawCircle(cx, baseY - fh_ * 0.15f, topW / 2f, paint);
+            paint.setShader(new LinearGradient(0f, baseY - fh_, 0f, baseY,
+                    new int[]{0xFFFF8C00, 0x00FF4500}, new float[]{0f, 1f}, Shader.TileMode.CLAMP));
+            canvas.drawRoundRect(cx - botW / 2f, midY, cx + botW / 2f, baseY, botW / 3f, botW / 3f, paint);
         }
 
-        // Animated cloud wisps: soft white streaks drifting across.
-        if (!WeatherFetcher.CONDITION_RAIN.equals(lastWeather)
-                && !WeatherFetcher.CONDITION_DRIZZLE.equals(lastWeather)
-                && !WeatherFetcher.CONDITION_THUNDERSTORM.equals(lastWeather)
-                && !WeatherFetcher.CONDITION_SNOW.equals(lastWeather)) {
-            drawCloudWisps(canvas, paint, sky);
+        // 4. Embers / rising sparks.
+        int sparkCount = 20;
+        for (int i = 0; i < sparkCount; i++) {
+            float phase = sunOffset + i * 0.21f;
+            float sparkX = fx + fw * (0.15f + 0.70f * (0.5f + 0.5f * (float) Math.sin(phase * 7.0f)));
+            float sparkY = flameBaseY - fh * (0.05f + 0.85f * (0.5f + 0.5f * (float) Math.cos(phase * 5.0f)));
+            float sr = TEX_W * 0.006f * (0.5f + 0.5f * (float) Math.sin(phase * 9.0f));
+            int a = (int) (120 + 135 * (0.5f + 0.5f * (float) Math.sin(phase * 11.0f)));
+            paint.setShader(null);
+            paint.setColor((a << 24) | 0x00FF6600);
+            canvas.drawCircle(sparkX, sparkY, sr, paint);
+        }
+
+        // 5. Fall leaves around the hearth.
+        int[] leafColors = {0xFFC83C14, 0xFFA0501E, 0xFF788C28, 0xFFB4641E};
+        for (int i = 0; i < 12; i++) {
+            float phase = sunOffset + i * 0.43f;
+            float lx = (TEX_W * 0.05f) + (TEX_W * 0.90f) * (0.5f + 0.5f * (float) Math.sin(phase * 3.0f));
+            float ly = TEX_H * (0.06f + 0.55f * (0.5f + 0.5f * (float) Math.cos(phase * 4.0f)));
+            float lr = TEX_W * 0.009f;
+            paint.setShader(null);
+            paint.setColor(leafColors[i % leafColors.length]);
+            canvas.drawOval(lx - lr, ly - lr * 0.6f, lx + lr, ly + lr * 0.6f, paint);
         }
 
         if (drawable == null) {
@@ -201,6 +227,10 @@ public class SkyView extends View {
             setBackground(drawable);
         }
         invalidate();
+
+        // Schedule next frame (~30 fps).
+        animHandler.removeCallbacks(animFrame);
+        animHandler.postDelayed(animFrame, 33);
     }
 
     /** Paint faint drifting cloud streaks across the sky. */

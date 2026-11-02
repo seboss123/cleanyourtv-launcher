@@ -28,21 +28,7 @@ public class QuoteFetcher {
 
     /** Fetch the quote for the current time-of-day slot. Hits the network only if the slot is uncached. */
     public static void fetch(final Context context, final Callback callback) {
-        String slot = timeSlot();
-        String today = LocalDate.now().toString();
-        String keyDate = today + "_" + slot;
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        String cachedDate = prefs.getString(KEY_DATE, null);
-
-        if (keyDate.equals(cachedDate)) {
-            String q = prefs.getString("quote_" + slot, null);
-            String a = prefs.getString("author_" + slot, null);
-            if (q != null && a != null) {
-                callback.onQuote(q, a);
-                return;
-            }
-        }
-
+        // Always fetch a fresh quote — new quote on every app (re)open.
         new Thread(() -> {
             String quote = null;
             String author = null;
@@ -75,19 +61,12 @@ public class QuoteFetcher {
             }
 
             if (quote == null || author == null) {
-                quote = defaultQuote(slot);
+                quote = defaultQuote();
                 author = "Chinese proverb";
             }
 
             final String finalQuote = quote;
             final String finalAuthor = author;
-
-            // Cache for this slot today
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(KEY_DATE, keyDate);
-            editor.putString("quote_" + slot, finalQuote);
-            editor.putString("author_" + slot, finalAuthor);
-            editor.apply();
 
             new android.os.Handler(android.os.Looper.getMainLooper())
                     .post(() -> callback.onQuote(finalQuote, finalAuthor));
@@ -102,15 +81,10 @@ public class QuoteFetcher {
         return "evening";
     }
 
-    private static String defaultQuote(String slot) {
-        switch (slot) {
-            case "morning":
-                return "The morning was full of sunlight and hope.";
-            case "afternoon":
-                return "Keep going, the best is yet to come.";
-            case "evening":
-            default:
-                return "The day is done; rest well.";
-        }
+    private static String defaultQuote() {
+        int hour = java.time.LocalTime.now().getHour();
+        if (hour < 12) return "The morning was full of sunlight and hope.";
+        if (hour < 18) return "Keep going, the best is yet to come.";
+        return "The day is done; rest well.";
     }
 }
