@@ -2865,6 +2865,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     ((TextView) child).setTextColor(j == index ? 0xFFFFFFFF : 0xB3FFFFFF);
                 }
                 // TODO: filter the grid to this category
+                if (adapter != null) adapter.filterByCategory(categories[index]);
             });
 
             categoryChipContainer.addView(chip);

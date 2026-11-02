@@ -221,6 +221,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     /** Packages drawn from their icon and name even when they have a banner (config.xml icon_tiles). */
     private final Set<String> iconTiles;
     private final List<Entry> items = new ArrayList<>();
+    /** Full app list before any category filter; used to restore when filter is cleared. */
+    private final List<Entry> allItems = new ArrayList<>();
 
     AppAdapter(Context ctx, TileListener listener, int dockSize, Config cfg) {
         this.ctx = ctx;
@@ -342,6 +344,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
         items.clear();
         items.addAll(fresh);
+        allItems.clear();
+        allItems.addAll(fresh);
         notifyDataSetChanged();
     }
 
@@ -999,6 +1003,44 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     listener.onTileFocused(pos, view);
                 }
             });
+        }
+    }
+
+    /** Filter the grid to a category: null shows all apps. Matches package names against
+     *  simple patterns per category (streaming, media, games, utilities). */
+    public void filterByCategory(String category) {
+        if (category == null || category.equals(ctx.getString(R.string.category_all))) {
+            items.clear();
+            items.addAll(allItems);
+            notifyDataSetChanged();
+            return;
+        }
+        items.clear();
+        for (Entry e : allItems) {
+            if (categoryMatches(e.pkg, category)) items.add(e);
+        }
+        if (items.isEmpty()) items.addAll(allItems); // fall back to all if nothing matches
+        notifyDataSetChanged();
+    }
+
+    private boolean categoryMatches(String pkg, String category) {
+        if (pkg == null) return false;
+        String lower = pkg.toLowerCase();
+        switch (category) {
+            case "Streaming":
+                return lower.contains("youtube") || lower.contains("netflix") || lower.contains("smarttube")
+                        || lower.contains("cloudstream") || lower.contains("hulu") || lower.contains("disney")
+                        || lower.contains("prime") || lower.contains("spotify");
+            case "Media":
+                return lower.contains("vlc") || lower.contains("kodi") || lower.contains("plex")
+                        || lower.contains("mxplayer") || lower.contains("media") || lower.contains("downloader");
+            case "Games":
+                return lower.contains("game") || lower.contains("play") || lower.contains("emu");
+            case "Utilities":
+                return lower.contains("settings") || lower.contains("system") || lower.contains("tool")
+                        || lower.contains("file") || lower.contains("manager") || lower.contains("clean");
+            default:
+                return false;
         }
     }
 }
