@@ -12,15 +12,11 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="no" />
 
-    <!-- Cinematic top shelf (cinematic_home): the focused dock app's artwork, a few pixels across and
-         stretched over the screen, which softens it like a blur without the cost of one. Hidden otherwise. -->
-    <ImageView
-        android:id="@+id/heroArt"
+    <!-- Roaming animated pixel animals (lofi zoo — weather-reactive). Roam behind all UI. -->
+    <com.gathin.tvhome.AnimalView
+        android:id="@+id/animalView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:alpha="0"
-        android:visibility="gone"
         android:importantForAccessibility="no" />
 
     <!-- Ambient glow in the colour of the focused dock app. -->
@@ -29,6 +25,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0" />
+
+    <!-- Cinematic top shelf: the focused dock app's artwork stretched over the screen. Hidden otherwise. -->
+    <ImageView
+        android:id="@+id/heroArt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:alpha="0"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
 
     <!-- Race-weekend panel (a theme's race_calendar, see RaceWeekend): in the free space under the clock,
          shown only from shortly before a weekend's first session until the race is over. Updated once a
@@ -352,6 +358,13 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnLofi"
+                    style="@style/TopButton"
+                    android:text="@string/lofi_music"
+                    android:drawableStart="@drawable/ic_music_note"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnReorder"
                     style="@style/TopButtonIcon"
                     android:contentDescription="@string/reorder"
@@ -422,8 +435,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone">
+            android:gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/weatherIcon"
@@ -543,15 +555,7 @@
         android:layout_height="10dp"
         android:alpha="0"
         android:importantForAccessibility="no" />
-
-    <!-- Roaming animated pixel animals (lofi zoo — weather-reactive). -->
-    <com.gathin.tvhome.AnimalView
-        android:id="@+id/animalView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:importantForAccessibility="no" />
-
-    <!-- Now Playing media session strip at bottom. -->
+<!-- Now Playing media session strip at bottom. -->
     <com.gathin.tvhome.NowPlayingView
         android:id="@+id/nowPlayingView"
         android:layout_width="match_parent"

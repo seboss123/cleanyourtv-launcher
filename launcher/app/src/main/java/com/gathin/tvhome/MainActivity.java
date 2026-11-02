@@ -199,6 +199,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** config show_inputs_pill: false keeps the Inputs pill hidden even when the TV has inputs. */
     private boolean showInputsPill = true;
     private TextView btnWifi;
+    private TextView btnLofi;
+    private boolean lofiPlaying = false;
     /** The network pill's icon as last set, so a refresh that changes nothing does not lay the top bar out again. */
     private int wifiIcon;
     /** The pills have been filled in once; later resumes refresh them after the first frame. */
@@ -889,6 +891,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View btnSettings = findViewById(R.id.btnSettings);
         btnInputs.setOnClickListener(v -> showInputs());
         btnWifi.setOnClickListener(v -> openNetworkPill());
+        btnLofi = findViewById(R.id.btnLofi);
+        btnLofi.setOnClickListener(v -> toggleLofiMusic());
         btnVpn.setOnClickListener(v -> openVpnPill());
         btnWifi.setOnLongClickListener(v -> {
             open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
@@ -2974,6 +2978,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         for (int i = 0; i < pageCount; i++) {
             View dot = new View(this);
             dot.setBackgroundResource(i == 0 ? R.drawable.page_dot_active : R.drawable.page_dot_inactive);
+            dot.setFocusable(true);
+            dot.setClickable(true);
+            final int page = i;
+            dot.setOnClickListener(v -> {
+                // Scroll grid to that page's vertical band
+                if (grid != null) {
+                    int pageHeight = grid.getHeight() / pageCount;
+                    grid.smoothScrollBy(0, page * pageHeight);
+                }
+                // Update active dot
+                for (int j = 0; j < pageIndicator.getChildCount(); j++) {
+                    View d = pageIndicator.getChildAt(j);
+                    d.setBackgroundResource(j == page ? R.drawable.page_dot_active : R.drawable.page_dot_inactive);
+                }
+            });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dotSize, dotSize);
             if (i > 0) params.leftMargin = dotSpacing;
             dot.setLayoutParams(params);
@@ -3410,6 +3429,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         onLibraryRequested();
         libraryFromVpnPill = true;
+    }
+
+    /** Toggle the lofi music background service on/off. */
+    private void toggleLofiMusic() {
+        Intent svc = new Intent(this, LofiMusicService.class);
+        if (lofiPlaying) {
+            stopService(svc);
+            lofiPlaying = false;
+            btnLofi.setAlpha(0.5f);
+        } else {
+            startService(svc);
+            lofiPlaying = true;
+            btnLofi.setAlpha(1f);
+        }
     }
 
     /** vpn_pill: the pill outlined in green with a lock while a VPN is up, outlined in red "VPN off" while it is not;
