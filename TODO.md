@@ -48,3 +48,9 @@
 - Started: 2026-11-01
 - Status: Beginning item #1
 - Current build: com.gathin.tvhome v3.3 (active Home on TV 192.168.0.123:5555)
+
+## Current Status (2026-11-02)
+- Top bar: FIXED - buttons now at very top of screen, accessible via D-pad
+- Clock/greeting: STILL BROKEN - leftBlock not in view hierarchy despite being in layout XML
+- HomeBootReceiver: created but untested on actual reboot
+- Pushed to GitHub: https://github.com/seboss123/cleanyourtv-launcher
