@@ -507,6 +507,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // the theme's background, so launch looks the same.
         getWindow().setBackgroundDrawable(null);
         wallpaperPlayer = new WallpaperPlayer(this, root, cfg);
+        wallpaperPlayer.setOnColorChangedListener(dominantColor -> {
+            // Adaptive accent: use the wallpaper's dominant color for the glass highlight.
+            if (glass != null) glass.setAccent(dominantColor);
+        });
         WeatherFetcher.fetch(this, (condition, temp) -> {
             if (wallpaperPlayer != null) wallpaperPlayer.setWeatherCondition(condition);
             if (animalView != null) animalView.setWeather(condition, isNight());

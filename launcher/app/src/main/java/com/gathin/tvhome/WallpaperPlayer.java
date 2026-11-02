@@ -59,7 +59,14 @@ final class WallpaperPlayer {
     private final Map<String, Set<String>> moods;
     /** Current weather condition for weather-aware wallpaper selection. */
     private String weatherCondition;
-    
+
+    /** Listener for when the wallpaper's dominant color changes. */
+    interface OnColorChangedListener {
+        void onWallpaperColorChanged(int dominantColor);
+    }
+
+    private OnColorChangedListener colorListener;
+
     void setWeatherCondition(String condition) {
         this.weatherCondition = condition;
     }
@@ -274,6 +281,36 @@ final class WallpaperPlayer {
         root.setBackground(null);
         image.setImageBitmap(bitmap);
         if (old != null && old != bitmap) image.postDelayed(old::recycle, 500);
+        // Sample the wallpaper's dominant color for adaptive accent theming.
+        if (colorListener != null) {
+            int dominant = sampleDominantColor(bitmap);
+            colorListener.onWallpaperColorChanged(dominant);
+        }
+    }
+
+    /** Set the listener that gets the wallpaper's dominant color on each rotation. */
+    void setOnColorChangedListener(OnColorChangedListener listener) {
+        this.colorListener = listener;
+    }
+
+    /** Sample a few pixels across the bitmap and return their average ARGB color. */
+    private int sampleDominantColor(Bitmap bitmap) {
+        int w = bitmap.getWidth(), h = bitmap.getHeight();
+        long r = 0, g = 0, b = 0, a = 0;
+        int count = 0;
+        int step = Math.max(1, Math.min(w, h) / 10);
+        for (int y = 0; y < h; y += step) {
+            for (int x = 0; x < w; x += step) {
+                int p = bitmap.getPixel(x, y);
+                a += (p >>> 24) & 0xFF;
+                r += (p >>> 16) & 0xFF;
+                g += (p >>> 8) & 0xFF;
+                b += p & 0xFF;
+                count++;
+            }
+        }
+        if (count == 0) return 0xFFFFFFFF;
+        return (int) (a / count) << 24 | (int) (r / count) << 16 | (int) (g / count) << 8 | (int) (b / count);
     }
 
     private Bitmap decode(File file) {
