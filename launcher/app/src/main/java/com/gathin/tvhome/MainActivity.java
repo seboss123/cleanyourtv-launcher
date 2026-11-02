@@ -66,7 +66,9 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.VideoView;
 import android.widget.PopupWindow;
+import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -117,7 +119,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      * 2025-01-01. TVs without a clock battery boot at the epoch (08:00 in China) and keep it until network
      * time arrives; the clock, date and greeting stay hidden before then.
      */
-    private static final long TIME_VALID_AFTER_MS = 1_735_689_600_000L;
+    private static final long TIME_VALID_AFTER_MS = 0L;
     private String liveTvPkg;
     /** Launcher settings' change count this Home was built with (see onResume). */
     private long settingsRevision;
@@ -145,7 +147,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private FrameLayout root;
     private WallpaperPlayer wallpaperPlayer;
     private GlassView glass;
-    private AnimalView animalView;
+    // animalView removed
     private NowPlayingView nowPlayingView;
     private View ambient;
     private TextView heroName;
@@ -163,7 +165,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View hero;
     private TextView heroMeta;
     private LinearLayout heroDots;
-    private LinearLayout pageIndicator;
+    // pageIndicator removed
     /** Cinematic top shelf (config.xml, cinematic_home): the focused dock app's artwork behind a larger shelf. */
     private boolean cinematic;
     /** config.xml ambient_glow, overridable by a theme. Off: the glow view is gone and no fade or colour animator
@@ -453,7 +455,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (festive) updateWifiLabel();
             sky.update();
             wallpaperPlayer.update();
-            if (pixelClockView != null) pixelClockView.tick();
+            // TextClock auto-updates; no manual tick needed
             handler.postDelayed(this, MINUTE_MS);
         }
     };
@@ -524,7 +526,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         WeatherFetcher.fetch(this, (condition, temp) -> {
             if (wallpaperPlayer != null) wallpaperPlayer.setWeatherCondition(condition);
-            if (animalView != null) animalView.setWeather(condition, isNight());
             if (sky != null) sky.setWeather(condition);
             if (weatherWidget != null) {
                 weatherWidget.setVisibility(View.VISIBLE);
@@ -554,12 +555,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
+        // Fullscreen background video: local MP4 file, looped and muted.
+        VideoView bgVideo = findViewById(R.id.bgVideo);
+        if (bgVideo != null) {
+            android.net.Uri videoUri = android.net.Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.fireplace);
+            bgVideo.setVideoURI(videoUri);
+            bgVideo.setOnPreparedListener(mp -> {
+                mp.setLooping(true);
+                mp.setVolume(0f, 0f); // mute
+                bgVideo.start();
+            });
+        }
         glass = findViewById(R.id.glass);
         glass.setStyle(cfg.glassStyle);
-        animalView = findViewById(R.id.animalView);
-        if (animalView != null) animalView.setWeather(WeatherFetcher.getCachedCondition(this), isNight());
-        pageIndicator = findViewById(R.id.pageIndicator);
-        setupPageIndicator();
+        // animalView removed
+        // pageIndicator removed - dots don't work on scrolling grid
         quoteText = findViewById(R.id.quoteText);
         quoteAuthor = findViewById(R.id.quoteAuthor);
         QuoteFetcher.fetch(this, (quote, author) -> {
@@ -569,6 +579,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         setupCategoryChips();
         // Channel rows removed: they duplicated dock/grid apps (SmartTube, Play Store appeared twice).
         // setupChannelRows();
+        // Dock row: small pills above the grid.
         dockRowView = findViewById(R.id.dockRowView);
         dockRowView.setDockApps(cfg.dockApps);
         dockRowView.setOnDockTileClickListener((pkg, cls) -> {
@@ -581,8 +592,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 // Ignore launch failures
             }
         });
-        pixelClockView = findViewById(R.id.clock);
-        pixelClockView.setPixelSize(10);
+        View clockView = findViewById(R.id.clock);
+        if (clockView instanceof TextClock) {
+            // TextClock auto-updates; no manual tick needed
+        }
         weatherWidget = findViewById(R.id.weatherWidget);
         weatherIcon = findViewById(R.id.weatherIcon);
         weatherTemp = findViewById(R.id.weatherTemp);
@@ -617,9 +630,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (!cfg.dockTitle) hero.setVisibility(View.GONE);
         greeting = findViewById(R.id.greeting);
         clockBlock = findViewById(R.id.leftBlock);
+        clockBlock.setVisibility(View.VISIBLE);
+        View cr = findViewById(R.id.clockRow);
+        if (cr != null) cr.setVisibility(View.VISIBLE);
         greetingColor = greeting.getCurrentTextColor();
-        if (!cfg.showGreeting) greeting.setVisibility(View.GONE);
-        setupClockPosition();
+        greeting.setVisibility(View.VISIBLE);
         // Keep the other header layouts as designed: their extra lines change the block's centre.
         if (!cfg.showGreeting && !cfg.dateBelowClock && !cfg.shamsiDate && !cfg.lunarDate
                 && !cfg.topMenu && !getResources().getBoolean(R.bool.rtl_menu_bar)) {
@@ -1203,6 +1218,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     @Override
     protected void onResume() {
+        clockBlock = findViewById(R.id.leftBlock);
+        if (clockBlock != null) clockBlock.setVisibility(View.VISIBLE);
+        greeting = findViewById(R.id.greeting);
+        if (greeting != null) {
+            greeting.setVisibility(View.VISIBLE);
+            // Force update greeting text
+            try { updateGreeting(); } catch (Exception e) { }
+        }
+        View cr = findViewById(R.id.clockRow);
+        if (cr != null) cr.setVisibility(View.VISIBLE);
         super.onResume();
         resumed = true;
         // A festival that started or ended while Home was in the background: rebuild with or without it.
@@ -2983,37 +3008,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             });
 
             channelRowsContainer.addView(row);
-        }
-    }
-
-    private void setupPageIndicator() {
-        if (pageIndicator == null) return;
-        pageIndicator.removeAllViews();
-        int pageCount = 3; // three home screens like Projectivy
-        int dotSize = dpToPx(8);
-        int dotSpacing = dpToPx(16);
-        for (int i = 0; i < pageCount; i++) {
-            View dot = new View(this);
-            dot.setBackgroundResource(i == 0 ? R.drawable.page_dot_active : R.drawable.page_dot_inactive);
-            dot.setFocusable(true);
-            dot.setClickable(true);
-            final int page = i;
-            dot.setOnClickListener(v -> {
-                // Scroll grid to that page's vertical band
-                if (grid != null) {
-                    int pageHeight = grid.getHeight() / pageCount;
-                    grid.smoothScrollBy(0, page * pageHeight);
-                }
-                // Update active dot
-                for (int j = 0; j < pageIndicator.getChildCount(); j++) {
-                    View d = pageIndicator.getChildAt(j);
-                    d.setBackgroundResource(j == page ? R.drawable.page_dot_active : R.drawable.page_dot_inactive);
-                }
-            });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dotSize, dotSize);
-            if (i > 0) params.leftMargin = dotSpacing;
-            dot.setLayoutParams(params);
-            pageIndicator.addView(dot);
         }
     }
 

@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -75,8 +74,8 @@ public class DockRowView extends HorizontalScrollView {
         container.setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        int sizeDp = 100;
-        int spacingDp = 14;
+        int sizeDp = 40;
+        int spacingDp = 6;
         float density = context.getResources().getDisplayMetrics().density;
         int sizePx = (int) (sizeDp * density);
         int spacingPx = (int) (spacingDp * density);
@@ -110,15 +109,9 @@ public class DockRowView extends HorizontalScrollView {
 
     private View makeTile(String pkg, String cls, Drawable icon, String label, boolean selected, int sizePx) {
         LinearLayout tile = new LinearLayout(context);
-        tile.setOrientation(LinearLayout.VERTICAL);
-        tile.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        tile.setOrientation(LinearLayout.HORIZONTAL);
+        tile.setGravity(android.view.Gravity.CENTER_VERTICAL);
         tile.setPadding(8, 4, 8, 4);
-
-        ImageView iconView = new ImageView(context);
-        iconView.setImageDrawable(icon);
-        int iconSize = (int) (sizePx * 0.7f);
-        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(iconSize, iconSize);
-        tile.addView(iconView, iconParams);
 
         TextView labelView = new TextView(context);
         labelView.setText(label);
@@ -126,15 +119,13 @@ public class DockRowView extends HorizontalScrollView {
         labelView.setTextColor(selected ? 0xFFFFFFFF : 0xB3FFFFFF);
         labelView.setSingleLine(true);
         labelView.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        labelView.setGravity(android.view.Gravity.CENTER);
+        labelView.setGravity(android.view.Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
-                (int) (sizePx * 1.4f), ViewGroup.LayoutParams.WRAP_CONTENT);
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         tile.addView(labelView, labelParams);
 
         if (selected) {
             tile.setBackgroundResource(R.drawable.bg_category_chip_selected);
-            tile.setScaleX(1.1f);
-            tile.setScaleY(1.1f);
         } else {
             tile.setBackgroundResource(R.drawable.bg_category_chip);
         }

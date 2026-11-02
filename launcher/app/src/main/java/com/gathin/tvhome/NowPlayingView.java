@@ -44,44 +44,44 @@ public class NowPlayingView extends LinearLayout {
     private void init() {
         setOrientation(HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
-        setPadding(16, 10, 16, 10);
-        setBackgroundColor(0xCC0A0A0A);
+        setPadding(24, 8, 24, 8);
+        setBackgroundColor(0x99000000);
         setVisibility(View.GONE);
 
         appName = new TextView(getContext());
         appName.setTextColor(0xFFFFFFFF);
-        appName.setTextSize(15f);
+        appName.setTextSize(14f);
         appName.setSingleLine(true);
         appName.setEllipsize(android.text.TextUtils.TruncateAt.END);
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                 0, LayoutParams.WRAP_CONTENT, 1f);
-        nameParams.rightMargin = 12;
+        nameParams.rightMargin = 8;
         addView(appName, nameParams);
 
         playbackState = new TextView(getContext());
-        playbackState.setTextColor(0xB3FFFFFF);
-        playbackState.setTextSize(13f);
+        playbackState.setTextColor(0x99FFFFFF);
+        playbackState.setTextSize(12f);
         playbackState.setSingleLine(true);
         addView(playbackState);
 
         playPause = new ImageButton(getContext());
         playPause.setBackground(null);
         playPause.setImageResource(android.R.drawable.ic_media_play);
-        playPause.setPadding(8, 8, 8, 8);
+        playPause.setPadding(4, 4, 4, 4);
         playPause.setOnClickListener(v -> togglePlayback());
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        btnParams.leftMargin = 16;
+        btnParams.leftMargin = 12;
         addView(playPause, btnParams);
 
         ImageButton stopBtn = new ImageButton(getContext());
         stopBtn.setBackground(null);
         stopBtn.setImageResource(R.drawable.ic_media_stop);
-        stopBtn.setPadding(8, 8, 8, 8);
+        stopBtn.setPadding(4, 4, 4, 4);
         stopBtn.setOnClickListener(v -> stopPlayback());
         LinearLayout.LayoutParams stopParams = new LinearLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        stopParams.leftMargin = 12;
+        stopParams.leftMargin = 8;
         addView(stopBtn, stopParams);
     }
 

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/fireplace_bg">
 
-    <!-- Fall fireplace background (animated: flickering flames + rising embers). -->
+    <!-- Animated sky backdrop (flickering flames, embers, leaves) as fallback. -->
     <com.gathin.tvhome.SkyView
         android:id="@+id/sky"
         android:layout_width="match_parent"
@@ -13,12 +13,18 @@
         android:importantForAccessibility="no"
         android:visibility="visible" />
 
-    <!-- Roaming animated pixel animals (lofi zoo — weather-reactive). Roam behind all UI. -->
-    <com.gathin.tvhome.AnimalView
-        android:id="@+id/animalView"
+    <!-- Fullscreen background video: local MP4 file (res/raw/fireplace.mp4). Configurable via config.json "background_video" key. -->
+    <VideoView
+        android:id="@+id/bgVideo"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:importantForAccessibility="no" />
+
+    <!-- Transparent input blocker removed: WebView is non-focusable, focus stays on dock/grid. -->
+
+        <!-- Animated animals removed per user request. -->
 
     <!-- Ambient glow in the colour of the focused dock app. -->
     <View
@@ -167,9 +173,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingStart="56dp"
-        android:paddingEnd="56dp"
-        android:paddingTop="26dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingTop="16dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -199,7 +205,7 @@
                     android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:ellipsize="end"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:textColor="#8CFFFFFF"
                     android:textSize="12sp"
                     android:fontFamily="@string/font_medium"
@@ -207,16 +213,24 @@
                     android:textAllCaps="true" />
 
                 <LinearLayout
+                    android:id="@+id/clockRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:baselineAligned="true">
+                    android:baselineAligned="true"
+                    android:layout_marginStart="8dp">
 
-                    <com.gathin.tvhome.PixelClockView
+                    <TextClock
                         android:id="@+id/clock"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginStart="4dp"
+                        android:format12Hour="HH:mm"
+                        android:format24Hour="HH:mm"
+                        android:textColor="#FFFFFF"
+                        android:textSize="32sp"
+                        android:fontFamily="@string/font_medium" />
 
                     <TextClock
                         android:id="@+id/ampm"
@@ -225,6 +239,7 @@
                         android:layout_marginStart="6dp"
                         android:layout_gravity="bottom"
                         android:layout_marginBottom="8dp"
+                        android:layout_weight="0"
                         android:format12Hour="a"
                         android:format24Hour=""
                         android:textColor="#B3FFFFFF"
@@ -333,11 +348,28 @@
                 android:clipToPadding="false"
                 android:orientation="horizontal">
 
+                <!-- Group 1: System controls -->
+                <TextView
+                    android:id="@+id/topGroup1Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="2dp"
+                    android:singleLine="true"
+                    android:text="CONTROL"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="10sp"
+                    android:fontFamily="@string/font_medium"
+                    android:letterSpacing="0.24"
+                    android:textAllCaps="true" />
+
                 <TextView
                     android:id="@+id/btnInputs"
                     style="@style/TopButton"
                     android:text="@string/inputs"
                     android:drawableStart="@drawable/ic_input"
+                    android:nextFocusRight="@+id/btnWifi"
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
@@ -348,6 +380,8 @@
                     android:ellipsize="end"
                     android:text="@string/wifi"
                     android:drawableStart="@drawable/ic_wifi"
+                    android:nextFocusLeft="@+id/btnInputs"
+                    android:nextFocusRight="@+id/btnHomeAssistant"
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
@@ -355,7 +389,35 @@
                     style="@style/TopButton"
                     android:text="@string/quick_home_assistant"
                     android:drawableStart="@drawable/ic_home"
+                    android:nextFocusLeft="@+id/btnWifi"
+                    android:nextFocusRight="@+id/groupDivider1"
                     android:nextFocusDown="@+id/grid" />
+
+                <!-- Group divider -->
+                <View
+                    android:id="@+id/groupDivider1"
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="#66FFFFFF" />
+
+                <!-- Group 2: Apps & system -->
+                <TextView
+                    android:id="@+id/topGroup2Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginBottom="2dp"
+                    android:singleLine="true"
+                    android:text="SYSTEM"
+                    android:textColor="#99FFFFFF"
+                    android:textSize="10sp"
+                    android:fontFamily="@string/font_medium"
+                    android:letterSpacing="0.24"
+                    android:textAllCaps="true" />
 
                 <TextView
                     android:id="@+id/btnVpn"
@@ -370,6 +432,8 @@
                     style="@style/TopButton"
                     android:text="@string/lofi_music"
                     android:drawableStart="@drawable/ic_music_note"
+                    android:nextFocusLeft="@+id/topGroup2Label"
+                    android:nextFocusRight="@+id/btnSettings"
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
@@ -377,6 +441,7 @@
                     style="@style/TopButtonIcon"
                     android:contentDescription="@string/reorder"
                     android:drawableStart="@drawable/ic_swap_vert"
+                    android:nextFocusLeft="@+id/btnLofi"
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
@@ -392,6 +457,8 @@
                     style="@style/TopButton"
                     android:text="@string/settings"
                     android:drawableStart="@drawable/ic_settings"
+                    android:nextFocusLeft="@+id/btnReorder"
+                    android:nextFocusRight="@+id/btnAllApps"
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
@@ -399,6 +466,8 @@
                     style="@style/TopButton"
                     android:text="@string/app_drawer"
                     android:drawableStart="@drawable/ic_apps_pill"
+                    android:nextFocusLeft="@+id/btnSettings"
+                    android:nextFocusRight="@+id/btnInputs"
                     android:nextFocusDown="@+id/grid" />
             </LinearLayout>
         </RelativeLayout>
@@ -422,14 +491,14 @@
             android:id="@+id/quoteText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:singleLine="false"
-            android:maxLines="3"
+            android:maxLines="2"
             android:ellipsize="end"
             android:textColor="#B3FFFFFF"
-            android:textSize="20sp"
+            android:textSize="16sp"
             android:fontFamily="@string/font_light"
             android:letterSpacing="0.04"
             android:lineSpacingExtra="4dp" />
@@ -447,8 +516,8 @@
 
             <ImageView
                 android:id="@+id/weatherIcon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/weather" />
 
@@ -457,9 +526,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="--°"
+                android:text="--°F"
                 android:textColor="#FFFFFFFF"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:fontFamily="@string/font_light" />
 
             <TextView
@@ -490,7 +559,7 @@
             android:id="@+id/categoryRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:fadeScrollbars="false"
@@ -504,22 +573,14 @@
                 android:paddingEnd="8dp" />
         </HorizontalScrollView>
 
-        <!-- Channel rows: Projectivy-style horizontal rows, stacked vertically. -->
-        <LinearLayout
-            android:id="@+id/channelRowsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical" />
+        <!-- Channel rows removed (duplicated dock apps). Container removed from layout. -->
 
-        <!-- Swipeable dock row: more than 4 dock apps, scroll left/right (item #14). -->
+        <!-- Dock row: small pills above the grid, frosted glass band (dock_glass=true). -->
         <com.gathin.tvhome.DockRowView
             android:id="@+id/dockRowView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp" />
 
@@ -534,26 +595,19 @@
                 android:id="@+id/grid"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingTop="10dp"
-                android:paddingBottom="40dp"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="20dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:clipToPadding="false"
                 android:clipChildren="false"
                 android:overScrollMode="never"
                 android:scrollbars="none"
+                android:nextFocusUp="@+id/btnInputs"
                 android:descendantFocusability="afterDescendants" />
         </FrameLayout>
 
-        <!-- Page indicator dots (Projectivy-style multiple home screens). -->
-        <LinearLayout
-            android:id="@+id/pageIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"
-            android:orientation="horizontal" />
+        <!-- Page indicator dots removed: not meaningful on a scrolling grid. -->
     </LinearLayout>
 
     <!-- Glass highlight that springs between tiles. -->
