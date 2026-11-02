@@ -844,9 +844,31 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             ((TextView) btnSettings).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_home_settings_pill, 0, 0, 0);
         }
         btnSettings.setOnClickListener(v -> {
-            if (launcherSettingsButton) startActivityForResult(
-                    new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
-            else open(systemIntent(Settings.ACTION_SETTINGS));
+            // Single settings gear: open a quick pill row popup with all top-bar options.
+            android.widget.PopupMenu popup = new android.widget.PopupMenu(this, v);
+            popup.getMenu().add(0, 1, 0, R.string.settings);
+            popup.getMenu().add(0, 2, 0, R.string.inputs);
+            popup.getMenu().add(0, 3, 0, R.string.wifi);
+            popup.getMenu().add(0, 4, 0, R.string.app_drawer);
+            popup.getMenu().add(0, 5, 0, R.string.reorder);
+            popup.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+                if (id == 1) {
+                    if (launcherSettingsButton) startActivityForResult(
+                            new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
+                    else open(systemIntent(Settings.ACTION_SETTINGS));
+                } else if (id == 2) {
+                    showInputs();
+                } else if (id == 3) {
+                    openNetworkPill();
+                } else if (id == 4) {
+                    startActivity(new Intent(MainActivity.this, AppDrawerActivity.class));
+                } else if (id == 5) {
+                    toggleReorder();
+                }
+                return true;
+            });
+            popup.show();
         });
         btnReorder = findViewById(R.id.btnReorder);
         btnReorder.setOnClickListener(v -> toggleReorder());
