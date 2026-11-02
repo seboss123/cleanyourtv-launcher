@@ -942,6 +942,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             popup.getMenu().add(0, 3, 0, R.string.wifi);
             popup.getMenu().add(0, 4, 0, R.string.app_drawer);
             popup.getMenu().add(0, 5, 0, R.string.reorder);
+            popup.getMenu().add(0, 6, 0, R.string.settings_main);
+            popup.getMenu().add(0, 7, 0, R.string.settings_power);
+            popup.getMenu().add(0, 8, 0, R.string.settings_project);
             popup.setOnMenuItemClickListener(item -> {
                 int id = item.getItemId();
                 if (id == 1) {
@@ -956,6 +959,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     startActivity(new Intent(MainActivity.this, AppDrawerActivity.class));
                 } else if (id == 5) {
                     toggleReorder();
+                } else if (id == 6) {
+                    // MagcubicOS main settings (blue with Bluetooth/WiFi/etc)
+                    open(new Intent().setComponent(new ComponentName("com.htc.magcubicos", "com.htc.magcubicos.activity.settings.MainSettingActivity")));
+                } else if (id == 7) {
+                    // MagcubicOS power settings
+                    open(new Intent().setComponent(new ComponentName("com.htc.magcubicos", "com.htc.magcubicos.activity.settings.PowerActivity")));
+                } else if (id == 8) {
+                    // MagcubicOS projector settings
+                    open(new Intent().setComponent(new ComponentName("com.htc.magcubicos", "com.htc.magcubicos.activity.settings.ProjectActivity")));
                 }
                 return true;
             });
@@ -1031,7 +1043,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         boolean rtlMenuBar = getResources().getBoolean(R.bool.rtl_menu_bar);
         View.OnKeyListener pillKeys = (v, keyCode, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
+            // Up at the top bar: there is nothing above; let the default focus search handle it
+            // (it will stay on the top bar since nothing is above). Do not swallow.
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 // Back to the dock tile Up came from, not wherever the focus finder lands.
                 focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
