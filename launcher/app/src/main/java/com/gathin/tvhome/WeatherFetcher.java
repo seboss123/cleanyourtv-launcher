@@ -12,6 +12,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.os.Handler;
+import android.os.Looper;
 
 /**
  * Fetches current weather from Open-Meteo API (free, no key required).
@@ -26,6 +28,7 @@ public class WeatherFetcher {
     private static final long CACHE_MS = 30 * 60 * 1000; // 30 minutes
     
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     
     public static final String CONDITION_CLEAR = "clear";
     public static final String CONDITION_CLOUDS = "clouds";
@@ -45,14 +48,14 @@ public class WeatherFetcher {
         if (System.currentTimeMillis() - cachedTime < CACHE_MS) {
             String condition = prefs.getString(KEY_CONDITION, CONDITION_CLEAR);
             float temp = prefs.getFloat(KEY_TEMP, 0);
-            callback.onWeather(condition, temp);
+            mainHandler.post(() -> callback.onWeather(condition, temp));
             return;
         }
         
         String lat = context.getString(R.string.latitude);
         String lon = context.getString(R.string.longitude);
         if (lat.isEmpty() || lon.isEmpty()) {
-            callback.onWeather(CONDITION_CLEAR, 0);
+            mainHandler.post(() -> callback.onWeather(CONDITION_CLEAR, 0));
             return;
         }
         
@@ -87,12 +90,12 @@ public class WeatherFetcher {
                     .putLong(KEY_TIME, System.currentTimeMillis())
                     .apply();
                 
-                callback.onWeather(condition, temp);
+                mainHandler.post(() -> callback.onWeather(condition, temp));
             } catch (Exception e) {
                 Log.e(TAG, "Weather fetch failed: " + e.getMessage());
                 String condition = prefs.getString(KEY_CONDITION, CONDITION_CLEAR);
                 float temp = prefs.getFloat(KEY_TEMP, 0);
-                callback.onWeather(condition, temp);
+                mainHandler.post(() -> callback.onWeather(condition, temp));
             } finally {
                 if (conn != null) conn.disconnect();
             }
