@@ -350,6 +350,13 @@
                     android:nextFocusDown="@+id/grid" />
 
                 <TextView
+                    android:id="@+id/btnHomeAssistant"
+                    style="@style/TopButton"
+                    android:text="@string/quick_home_assistant"
+                    android:drawableStart="@drawable/ic_home"
+                    android:nextFocusDown="@+id/grid" />
+
+                <TextView
                     android:id="@+id/btnVpn"
                     style="@style/TopButton"
                     android:visibility="gone"

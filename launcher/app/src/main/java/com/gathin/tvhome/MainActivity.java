@@ -200,6 +200,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean showInputsPill = true;
     private TextView btnWifi;
     private TextView btnLofi;
+    private TextView btnHomeAssistant;
     private boolean lofiPlaying = false;
     /** The network pill's icon as last set, so a refresh that changes nothing does not lay the top bar out again. */
     private int wifiIcon;
@@ -527,7 +528,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (sky != null) sky.setWeather(condition);
             if (weatherWidget != null) {
                 weatherWidget.setVisibility(View.VISIBLE);
-                weatherTemp.setText(String.format("%d°", Math.round(temp)));
+                weatherTemp.setText(String.format("%d°F", Math.round(temp * 9.0 / 5.0 + 32.0)));
                 weatherCondition.setText(condition != null ? condition : "Unknown");
                 switch (condition) {
                     case "clear":
@@ -893,6 +894,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnWifi.setOnClickListener(v -> openNetworkPill());
         btnLofi = findViewById(R.id.btnLofi);
         btnLofi.setOnClickListener(v -> toggleLofiMusic());
+        btnHomeAssistant = findViewById(R.id.btnHomeAssistant);
+        btnHomeAssistant.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(android.net.Uri.parse("http://homeassistant.local:8123"));
+            open(intent);
+        });
         btnVpn.setOnClickListener(v -> openVpnPill());
         btnWifi.setOnLongClickListener(v -> {
             open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
@@ -1014,6 +1021,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         };
         btnInputs.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
+        btnHomeAssistant.setOnKeyListener(pillKeys);
         btnVpn.setOnKeyListener(pillKeys);
         btnSettings.setOnKeyListener(pillKeys);
         btnReorder.setOnKeyListener(pillKeys);
@@ -1021,7 +1029,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         btnAllApps.setOnKeyListener(pillKeys);
         for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
         if (advancedEffects) {
-            List<View> pills = new ArrayList<>(Arrays.asList(btnInputs, btnWifi, btnVpn, btnReorder, btnLibraryTop, btnSettings, btnAllApps));
+            List<View> pills = new ArrayList<>(Arrays.asList(btnInputs, btnWifi, btnHomeAssistant, btnVpn, btnReorder, btnLibraryTop, btnSettings, btnAllApps));
             pills.addAll(topAppButtons);
             for (View button : pills) {
                 button.setOnFocusChangeListener((view, focused) -> view.animate()
@@ -3439,6 +3447,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             lofiPlaying = false;
             btnLofi.setAlpha(0.5f);
         } else {
+            svc.setAction("PLAY");
             startService(svc);
             lofiPlaying = true;
             btnLofi.setAlpha(1f);
