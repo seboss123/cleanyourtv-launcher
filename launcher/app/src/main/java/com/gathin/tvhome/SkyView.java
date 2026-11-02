@@ -8,6 +8,8 @@ import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -49,6 +51,12 @@ public class SkyView extends View {
     private Bitmap texture;
     private BitmapDrawable drawable;
 
+    /** Animation state. */
+    private final Handler animHandler = new Handler(Looper.getMainLooper());
+    private final Runnable animFrame = this::nextAnimFrame;
+    private float sunOffset = 0f;      // 0 to 1: sun's horizontal position this frame
+    private float cloudOffset = 0f;    // 0 to 1: cloud drift phase
+
     public SkyView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
@@ -58,7 +66,12 @@ public class SkyView extends View {
         intensity = Math.max(0, Math.min(100, percent));
         setAlpha(intensity / 100f);
         setVisibility(intensity == 0 ? GONE : VISIBLE);
-        if (intensity > 0) render(true);
+        if (intensity > 0) {
+            render(true);
+            startAnim();
+        } else {
+            stopAnim();
+        }
     }
 
     /** Picks up a new time of day; cheap and safe to call every minute. */
@@ -77,7 +90,35 @@ public class SkyView extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (intensity > 0) render(true);
+        if (intensity > 0) {
+            render(true);
+            startAnim();
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopAnim();
+    }
+
+    private void startAnim() {
+        animHandler.removeCallbacks(animFrame);
+        animHandler.post(animFrame);
+    }
+
+    private void stopAnim() {
+        animHandler.removeCallbacks(animFrame);
+    }
+
+    /** Advance one animation frame: move the sun and drift clouds. ~30 Hz. */
+    private void nextAnimFrame() {
+        sunOffset += 0.0015f;   // slow drift across the day
+        if (sunOffset > 1f) sunOffset = 0f;
+        cloudOffset += 0.003f;  // cloud drift
+        if (cloudOffset > 1f) cloudOffset = 0f;
+        if (intensity > 0 && getVisibility() == VISIBLE) render(false);
+        animHandler.postDelayed(animFrame, 33); // ~30 fps
     }
 
     /** Today's sunrise and sunset at the configured place, or null without one (fixed reference day). */
@@ -129,14 +170,29 @@ public class SkyView extends View {
                 new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
         canvas.drawRect(0f, 0f, TEX_W, TEX_H, paint);
 
+        // Animated sun: drift horizontally based on time of day, modulated by the animation offset.
+        float sunX;
         if (sky.sun > 0) {
-            // A warm core low on the horizon, where the sun (or its afterglow) sits.
+            // Map minute of day to a sunX position: sunrise -> left, noon -> center, sunset -> right.
+            // Use the sky's sunX as base, offset by animation.
+            float baseSunX = sky.sunX;
+            sunX = baseSunX + (sunOffset - 0.5f) * 0.15f; // small animated drift around base
+            sunX = Math.max(0.05f, Math.min(0.95f, sunX));
+
             int warm = Sky.lerpColor(sky.bottom, 0xFFFFD9A0, 0.65f);
             paint.setShader(new RadialGradient(
-                    sky.sunX * TEX_W, TEX_H * 0.80f, TEX_W * 0.55f,
+                    sunX * TEX_W, TEX_H * 0.80f, TEX_W * 0.55f,
                     new int[]{(sky.sun << 24) | (warm & 0x00FFFFFF), warm & 0x00FFFFFF},
                     new float[]{0f, 1f}, Shader.TileMode.CLAMP));
             canvas.drawRect(0f, 0f, TEX_W, TEX_H, paint);
+        }
+
+        // Animated cloud wisps: soft white streaks drifting across.
+        if (!WeatherFetcher.CONDITION_RAIN.equals(lastWeather)
+                && !WeatherFetcher.CONDITION_DRIZZLE.equals(lastWeather)
+                && !WeatherFetcher.CONDITION_THUNDERSTORM.equals(lastWeather)
+                && !WeatherFetcher.CONDITION_SNOW.equals(lastWeather)) {
+            drawCloudWisps(canvas, paint, sky);
         }
 
         if (drawable == null) {
@@ -145,5 +201,36 @@ public class SkyView extends View {
             setBackground(drawable);
         }
         invalidate();
+    }
+
+    /** Paint faint drifting cloud streaks across the sky. */
+    private void drawCloudWisps(Canvas canvas, Paint paint, Sky.Palette sky) {
+        int wispColor = Sky.lerpColor(sky.top, 0xFFFFFFFF, 0.35f);
+        paint.setShader(null);
+        paint.setColor(wispColor);
+        paint.setAlpha(40);
+
+        int w = TEX_W;
+        int h = TEX_H;
+        float phase = cloudOffset;
+
+        // Three drifting wisps at different heights and speeds.
+        drawWisp(canvas, paint, w, h, phase, 0.25f, 0.30f);
+        drawWisp(canvas, paint, w, h, phase + 0.37f, 0.55f, 0.45f);
+        drawWisp(canvas, paint, w, h, phase + 0.71f, 0.78f, 0.20f);
+    }
+
+    private void drawWisp(Canvas canvas, Paint paint, int w, int h, float phase, float yFrac, float lenFrac) {
+        int cx = (int) ((phase * 1.3f) % 1f * (w + (int) (w * lenFrac))) - (int) (w * lenFrac * 0.5f);
+        int cy = (int) (h * yFrac);
+        int wLen = (int) (w * lenFrac);
+        int wH = h / 12;
+
+        // Soft elliptical wisp using a radial gradient that fades out.
+        int alpha = 60;
+        int[] colors = {0, alpha, alpha * 2, alpha, 0};
+        float[] stops = {0f, 0.25f, 0.5f, 0.75f, 1f};
+        paint.setShader(new RadialGradient(cx + wLen / 2, cy, wLen / 2, colors, stops, Shader.TileMode.CLAMP));
+        canvas.drawRect(cx, cy - wH / 2, cx + wLen, cy + wH / 2, paint);
     }
 }
