@@ -10,34 +10,33 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
- * QuoteFetcher: fetches a random quote from ZenQuotes (free, no API key).
- * Cached in SharedPreferences so a new quote shows each launch within a day.
+ * QuoteFetcher: fetches random quotes from ZenQuotes (free, no API key).
+ * Cycles through 3 quotes per day (morning / afternoon / evening), cached in SharedPreferences.
  */
 public class QuoteFetcher {
 
     private static final String PREF_NAME = "tvhome_prefs";
-    private static final String KEY_QUOTE = "quote_text";
-    private static final String KEY_AUTHOR = "quote_author";
     private static final String KEY_DATE = "quote_date";
 
     public interface Callback {
         void onQuote(String quote, String author);
     }
 
-    /**
-     * Fetch a random quote. If we already have one cached for today, return it
-     * immediately without hitting the network.
-     */
+    /** Fetch the quote for the current time-of-day slot. Hits the network only if the slot is uncached. */
     public static void fetch(final Context context, final Callback callback) {
-        String today = java.time.LocalDate.now().toString();
+        String slot = timeSlot();
+        String today = LocalDate.now().toString();
+        String keyDate = today + "_" + slot;
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         String cachedDate = prefs.getString(KEY_DATE, null);
 
-        if (today.equals(cachedDate)) {
-            String q = prefs.getString(KEY_QUOTE, null);
-            String a = prefs.getString(KEY_AUTHOR, null);
+        if (keyDate.equals(cachedDate)) {
+            String q = prefs.getString("quote_" + slot, null);
+            String a = prefs.getString("author_" + slot, null);
             if (q != null && a != null) {
                 callback.onQuote(q, a);
                 return;
@@ -72,22 +71,22 @@ public class QuoteFetcher {
                 }
                 conn.disconnect();
             } catch (Exception e) {
-                // fall back to cached or default
+                // fall back to default
             }
 
             if (quote == null || author == null) {
-                quote = "The best time to plant a tree was 20 years ago.";
+                quote = defaultQuote(slot);
                 author = "Chinese proverb";
             }
 
             final String finalQuote = quote;
             final String finalAuthor = author;
 
-            // Cache for today
+            // Cache for this slot today
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(KEY_DATE, today);
-            editor.putString(KEY_QUOTE, finalQuote);
-            editor.putString(KEY_AUTHOR, finalAuthor);
+            editor.putString(KEY_DATE, keyDate);
+            editor.putString("quote_" + slot, finalQuote);
+            editor.putString("author_" + slot, finalAuthor);
             editor.apply();
 
             new android.os.Handler(android.os.Looper.getMainLooper())
@@ -95,20 +94,23 @@ public class QuoteFetcher {
         }).start();
     }
 
-    /** Return today's cached quote, or null if none. */
-    public static String getCachedQuote(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        String today = java.time.LocalDate.now().toString();
-        String cachedDate = prefs.getString(KEY_DATE, null);
-        if (!today.equals(cachedDate)) return null;
-        return prefs.getString(KEY_QUOTE, null);
+    /** Time-of-day slot: morning (0-11), afternoon (12-17), evening (18-23). */
+    private static String timeSlot() {
+        int hour = LocalTime.now().getHour();
+        if (hour < 12) return "morning";
+        if (hour < 18) return "afternoon";
+        return "evening";
     }
 
-    public static String getCachedAuthor(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        String today = java.time.LocalDate.now().toString();
-        String cachedDate = prefs.getString(KEY_DATE, null);
-        if (!today.equals(cachedDate)) return null;
-        return prefs.getString(KEY_AUTHOR, null);
+    private static String defaultQuote(String slot) {
+        switch (slot) {
+            case "morning":
+                return "The morning was full of sunlight and hope.";
+            case "afternoon":
+                return "Keep going, the best is yet to come.";
+            case "evening":
+            default:
+                return "The day is done; rest well.";
+        }
     }
 }
