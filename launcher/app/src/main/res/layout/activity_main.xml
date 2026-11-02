@@ -193,8 +193,9 @@
                 android:layout_alignParentStart="true"
                 android:layout_toStartOf="@+id/topButtons"
                 android:layout_marginEnd="16dp"
-                android:orientation="vertical"
-                android:background="#0000FF" >
+                android:minHeight="100dp"
+                android:visibility="visible"
+                android:orientation="vertical" >
 
                 <!-- The header texts use gravity left, not start: the launcher lays out left to right
                      (no supportsRtl), and with start a right-to-left script such as Arabic would move to the
@@ -212,9 +213,7 @@
                     android:textSize="12sp"
                     android:fontFamily="@string/font_medium"
                     android:letterSpacing="0.22"
-                    android:textAllCaps="true"
-                    android:background="#00FF00"
-                    android:text="TEST GREETING" />
+                    android:textAllCaps="true" />
 
                 <LinearLayout
                     android:id="@+id/clockRow"
@@ -234,9 +233,7 @@
                         android:format24Hour="HH:mm"
                         android:textColor="#FFFFFF"
                         android:textSize="32sp"
-                        android:fontFamily="@string/font_medium"
-                        android:background="#FF0000"
-                        android:text="23:45" />
+                        android:fontFamily="@string/font_medium" />
 
                     <TextClock
                         android:id="@+id/ampm"
@@ -348,7 +345,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_alignBottom="@id/leftBlock"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="0dp"
                 android:layout_marginBottom="6dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
@@ -588,7 +586,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginEnd="8dp"
+            android:nextFocusUp="@+id/btnInputs" />
 
         <!-- App grid: tiles that scale when focused. -->
         <FrameLayout
@@ -609,8 +608,7 @@
                 android:clipChildren="false"
                 android:overScrollMode="never"
                 android:scrollbars="none"
-                android:nextFocusUp="@+id/btnInputs"
-                android:descendantFocusability="afterDescendants" />
+                android:nextFocusUp="@+id/btnInputs" />
         </FrameLayout>
 
         <!-- Page indicator dots removed: not meaningful on a scrolling grid. -->
