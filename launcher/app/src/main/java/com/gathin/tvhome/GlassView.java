@@ -29,6 +29,8 @@ public class GlassView extends View {
     /** glass_style rim or halo: no sheen and no fill, only the crisp rim (and, for halo, a lighter outer glow). */
     private boolean flat;
     private boolean halo;
+    /** pill style: a simple rounded pill outline with glow, no fill, no sheen, no specular. */
+    private boolean pill;
 
     public GlassView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -61,10 +63,11 @@ public class GlassView extends View {
         invalidate();
     }
 
-    /** One of Config's GLASS_* styles. */
+    /** One of Config's GLASS_* styles, plus "pill". */
     void setStyle(String style) {
         flat = Config.GLASS_RIM.equals(style) || Config.GLASS_HALO.equals(style);
         halo = Config.GLASS_HALO.equals(style);
+        pill = "pill".equals(style);
         rim.setStrokeWidth((flat ? 2f : 1.5f) * density);
         invalidate();
     }
@@ -83,6 +86,27 @@ public class GlassView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if (pill) {
+            // Simple rounded pill: thick rounded outline with outer glow, no fill or sheen.
+            float inset = 8f * density;
+            rect.set(inset, inset, getWidth() - inset, getHeight() - inset);
+            // Outer glow rings.
+            int rings = 8;
+            float step = inset / rings;
+            for (int i = 0; i < rings; i++) {
+                float o = step * (i + 0.5f);
+                float t = 1f - (float) i / rings;
+                glow.setColor(Math.round(glowAlpha * t) << 24 | glowRgb);
+                glow.setStrokeWidth(step + 0.5f);
+                canvas.drawRoundRect(rect.left - o, rect.top - o, rect.right + o, rect.bottom + o, radius + o, radius + o, glow);
+            }
+            // Pill outline.
+            rim.setStrokeWidth(3f * density);
+            rim.setColor(0xFF000000 | glowRgb);
+            canvas.drawRoundRect(rect, radius, radius, rim);
+            return;
+        }
+
         float inset = 6f * density;   // room for the glow
         rect.set(inset, inset, getWidth() - inset, getHeight() - inset);
 
