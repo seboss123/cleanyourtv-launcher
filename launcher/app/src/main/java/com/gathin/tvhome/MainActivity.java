@@ -154,6 +154,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private LinearLayout categoryChipContainer;
     private LinearLayout channelRowsContainer;
     private DockRowView dockRowView;
+    private PixelClockView pixelClockView;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -445,6 +446,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (festive) updateWifiLabel();
             sky.update();
             wallpaperPlayer.update();
+            if (pixelClockView != null) pixelClockView.tick();
             handler.postDelayed(this, MINUTE_MS);
         }
     };
@@ -546,6 +548,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 // Ignore launch failures
             }
         });
+        pixelClockView = findViewById(R.id.clock);
+        pixelClockView.setPixelSize(10);
         nowPlayingView = findViewById(R.id.nowPlayingView);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
