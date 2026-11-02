@@ -23,3 +23,6 @@ launcher/hs_err_pid*.log
 launcher/replay_pid*.log
 tv_screenshot.jpg
 tv_screenshot.png
+view_hierarchy*.xml
+tv_*.png
+*.png
