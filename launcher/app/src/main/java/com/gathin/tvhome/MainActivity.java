@@ -587,6 +587,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         weatherTemp = findViewById(R.id.weatherTemp);
         weatherCondition = findViewById(R.id.weatherCondition);
         nowPlayingView = findViewById(R.id.nowPlayingView);
+        nowPlayingView.setOnLofiToggle(this::toggleLofiMusic);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
         // The glow is one bitmap, so its alpha can be applied while drawing it. Otherwise every frame of
@@ -3443,14 +3444,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void toggleLofiMusic() {
         Intent svc = new Intent(this, LofiMusicService.class);
         if (lofiPlaying) {
-            stopService(svc);
+            svc.setAction("STOP");
+            startService(svc);
             lofiPlaying = false;
             btnLofi.setAlpha(0.5f);
+            if (nowPlayingView != null) nowPlayingView.clear();
         } else {
             svc.setAction("PLAY");
-            startService(svc);
+            startForegroundService(svc);
             lofiPlaying = true;
             btnLofi.setAlpha(1f);
+            if (nowPlayingView != null) nowPlayingView.setLofi(true);
         }
     }
 

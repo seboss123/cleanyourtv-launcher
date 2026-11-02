@@ -85,8 +85,8 @@ public class LofiMusicService extends Service implements MediaPlayer.OnPreparedL
     private void play() {
         if (isPlaying) return;
         if (streamUrl == null || streamUrl.isEmpty()) {
-            // Default lofi stream - user can configure in config.xml
-            streamUrl = "https://stream.lowyat.net/lofi";
+            // Default lofi stream - verified working: laut.fm lofi
+            streamUrl = "https://lofi.stream.laut.fm/lofi";
         }
         try {
             mediaPlayer.reset();

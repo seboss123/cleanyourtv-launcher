@@ -24,6 +24,7 @@ public class NowPlayingView extends LinearLayout {
 
     private String activePackage = null;
     private boolean playing = false;
+    private Runnable onLofiToggle;
 
     public NowPlayingView(Context context) {
         super(context);
@@ -72,6 +73,21 @@ public class NowPlayingView extends LinearLayout {
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         btnParams.leftMargin = 16;
         addView(playPause, btnParams);
+
+        ImageButton stopBtn = new ImageButton(getContext());
+        stopBtn.setBackground(null);
+        stopBtn.setImageResource(R.drawable.ic_media_stop);
+        stopBtn.setPadding(8, 8, 8, 8);
+        stopBtn.setOnClickListener(v -> stopPlayback());
+        LinearLayout.LayoutParams stopParams = new LinearLayout.LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        stopParams.leftMargin = 12;
+        addView(stopBtn, stopParams);
+    }
+
+    /** Set a callback fired when play/pause is pressed while lofi is active (no app package). */
+    public void setOnLofiToggle(Runnable r) {
+        this.onLofiToggle = r;
     }
 
     /** Call from MainActivity when an app launches media playback. */
@@ -93,6 +109,18 @@ public class NowPlayingView extends LinearLayout {
         setVisibility(View.GONE);
     }
 
+    /** Show the lofi music player strip. */
+    public void setLofi(boolean playing) {
+        this.activePackage = null;
+        this.playing = playing;
+        appName.setText("Lofi Music");
+        playbackState.setText(playing ? "Lofi Hip Hop Radio · Playing" : "Lofi Hip Hop Radio · Paused");
+        playPause.setImageResource(playing
+                ? android.R.drawable.ic_media_pause
+                : android.R.drawable.ic_media_play);
+        setVisibility(View.VISIBLE);
+    }
+
     private String getPackageLabel(String packageName) {
         if (packageName == null) return "Media";
         try {
@@ -104,7 +132,11 @@ public class NowPlayingView extends LinearLayout {
     }
 
     private void togglePlayback() {
-        if (activePackage == null) return;
+        if (activePackage == null) {
+            // Lofi mode: toggle the lofi service directly.
+            if (onLofiToggle != null) onLofiToggle.run();
+            return;
+        }
         // Send a media key broadcast to the active package.
         Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         intent.putExtra(Intent.EXTRA_KEY_EVENT,
@@ -119,6 +151,12 @@ public class NowPlayingView extends LinearLayout {
         playPause.setImageResource(playing
                 ? android.R.drawable.ic_media_pause
                 : android.R.drawable.ic_media_play);
+    }
+
+    /** Stop lofi playback and hide the strip. */
+    public void stopPlayback() {
+        if (onLofiToggle != null) onLofiToggle.run();
+        clear();
     }
 
     public void release() {
