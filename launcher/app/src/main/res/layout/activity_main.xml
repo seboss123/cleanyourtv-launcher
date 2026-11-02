@@ -413,6 +413,45 @@
             android:letterSpacing="0.04"
             android:lineSpacingExtra="4dp" />
 
+        <!-- Weather widget tile (temp + condition icon) in header. -->
+        <LinearLayout
+            android:id="@+id/weatherWidget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/weatherIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/weather" />
+
+            <TextView
+                android:id="@+id/weatherTemp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="--°"
+                android:textColor="#FFFFFFFF"
+                android:textSize="18sp"
+                android:fontFamily="@string/font_light" />
+
+            <TextView
+                android:id="@+id/weatherCondition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="--"
+                android:textColor="#B3FFFFFF"
+                android:textSize="14sp"
+                android:fontFamily="@string/font_medium" />
+        </LinearLayout>
         <TextView
             android:id="@+id/quoteAuthor"
             android:layout_width="wrap_content"

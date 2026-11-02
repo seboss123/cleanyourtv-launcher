@@ -171,4 +171,5 @@
     <string name="app_drawer">All Apps</string>
     <string name="app_drawer_hint">Every app installed on this TV</string>
     <string name="drawer_back_hint">Press Back to return to Home</string>
+    <string name="weather">Weather</string>
 </resources>

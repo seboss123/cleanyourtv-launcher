@@ -155,6 +155,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private LinearLayout channelRowsContainer;
     private DockRowView dockRowView;
     private PixelClockView pixelClockView;
+    private LinearLayout weatherWidget;
+    private ImageView weatherIcon;
+    private TextView weatherTemp;
+    private TextView weatherCondition;
     /** The top shelf: heroName, plus the cinematic shelf's "Last opened" line and dock position dots. */
     private View hero;
     private TextView heroMeta;
@@ -519,6 +523,31 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (wallpaperPlayer != null) wallpaperPlayer.setWeatherCondition(condition);
             if (animalView != null) animalView.setWeather(condition, isNight());
             if (sky != null) sky.setWeather(condition);
+            if (weatherWidget != null) {
+                weatherWidget.setVisibility(View.VISIBLE);
+                weatherTemp.setText(String.format("%d°", Math.round(temp)));
+                weatherCondition.setText(condition != null ? condition : "Unknown");
+                switch (condition) {
+                    case "clear":
+                        weatherIcon.setImageResource(android.R.drawable.ic_lock_idle_alarm);
+                        break;
+                    case "clouds":
+                    case "fog":
+                        weatherIcon.setImageResource(android.R.drawable.ic_menu_myplaces);
+                        break;
+                    case "rain":
+                    case "drizzle":
+                    case "thunderstorm":
+                        weatherIcon.setImageResource(android.R.drawable.ic_menu_compass);
+                        break;
+                    case "snow":
+                        weatherIcon.setImageResource(android.R.drawable.ic_menu_recent_history);
+                        break;
+                    default:
+                        weatherIcon.setImageResource(android.R.drawable.ic_lock_idle_alarm);
+                        break;
+                }
+            }
         });
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
@@ -550,6 +579,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         pixelClockView = findViewById(R.id.clock);
         pixelClockView.setPixelSize(10);
+        weatherWidget = findViewById(R.id.weatherWidget);
+        weatherIcon = findViewById(R.id.weatherIcon);
+        weatherTemp = findViewById(R.id.weatherTemp);
+        weatherCondition = findViewById(R.id.weatherCondition);
         nowPlayingView = findViewById(R.id.nowPlayingView);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
